@@ -1,0 +1,33 @@
+// Environment settings
+require('dotenv').config();
+
+// Import modules
+const http = require('http');
+
+const app = require('../app');
+const LogUtil = require('../libs/LogUtil');
+
+// Socket io
+const server = new http.Server(app);
+const portApp = (process.env.PORT) || 3001;
+
+// API things
+const clientID = process.env.CLIENT_ID;
+const clientSecret = process.env.CLIENT_SECRET;
+
+// Routes
+app.get('/', (req, res) => {
+  res.send(`Hello World! ${clientID} ${clientSecret}`);
+});
+
+// Request handler
+app.use((err, req, res, next) => {
+  LogUtil.winston.log('error', err.stack);
+
+  res.status(500).send('Something broke!');
+  next();
+});
+
+server.listen(portApp, () => {
+  LogUtil.winston.log('info', `Listening on port ${portApp}!`);
+});

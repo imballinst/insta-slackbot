@@ -7,42 +7,12 @@ const http = require('http');
 const app = require('../app');
 const LogUtil = require('../libs/LogUtil');
 
-// Socket io
+// Routes
+require('../routes/indexRoute');
+
+// Server and Port
 const server = new http.Server(app);
 const portApp = (process.env.PORT) || 3001;
-
-// API things
-const clientID = process.env.CLIENT_ID;
-const clientSecret = process.env.CLIENT_SECRET;
-
-// Create Subscription
-// const subCreateData = {
-//   client_id: clientID,
-//   client_secret: clientSecret,
-//   object: 'user',
-//   aspect: 'media',
-//   verify_token: 'myVerifyToken',
-//   callback_url: 'imballinst.com/instagram',
-// };
-
-// const options = {
-//   hostname: 'https://api.instagram.com',
-//   path: '/v1/subscriptions/',
-//   method: 'POST',
-// };
-
-// Routes
-app.get('/', (req, res) => {
-  res.send(`Hello World! ${clientID} ${clientSecret}`);
-});
-
-// Request handler
-app.use((err, req, res, next) => {
-  LogUtil.winston.log('error', err.stack);
-
-  res.status(500).send('Something broke!');
-  next();
-});
 
 server.listen(portApp, () => {
   LogUtil.winston.log('info', `Listening on port ${portApp}!`);

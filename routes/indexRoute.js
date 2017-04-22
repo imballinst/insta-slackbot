@@ -21,7 +21,7 @@ app.get('/create-sub', (req, res) => {
     object: 'user',
     aspect: 'media',
     verify_token: 'myVerifyToken',
-    callback_url: 'imballinst.com/sub-accept',
+    callback_url: 'instagram.imballinst.com/sub-accept',
   };
 
   const options = {

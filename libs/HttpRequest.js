@@ -1,4 +1,5 @@
 const http = require('http');
+const querystring = require('querystring');
 
 const LogUtil = require('../libs/LogUtil');
 
@@ -31,7 +32,9 @@ function httpRequest(options, data, callback) {
   });
 
   // Write data to request body
-  req.write(data);
+  const dataParams = querystring.stringify(data);
+
+  req.write(dataParams);
   req.end();
 }
 

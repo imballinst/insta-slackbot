@@ -25,12 +25,12 @@ app.get('/create-sub', (req, res) => {
   };
 
   const options = {
-    hostname: 'https://api.instagram.com',
+    hostname: 'api.instagram.com',
     path: '/v1/subscriptions/',
     method: 'POST',
   };
 
-  httpRequest(subCreateData, options);
+  httpRequest(options, subCreateData);
 });
 
 app.get('/sub-accept', (req, res) => {
@@ -45,7 +45,7 @@ app.get('/list-sub', (req, res) => {
   };
 
   const options = {
-    hostname: 'https://api.instagram.com',
+    hostname: 'api.instagram.com',
     path: '/v1/subscriptions/',
     method: 'GET',
   };
@@ -54,7 +54,7 @@ app.get('/list-sub', (req, res) => {
     res.send(json);
   };
 
-  httpRequest(subListData, options);
+  httpRequest(options, subListData);
 });
 
 // 404 Not Found

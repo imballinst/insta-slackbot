@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
 });
 
 // Create and Accept Subscription
-app.get('/create-sub', () => {
+app.get('/create-sub', (_, res) => {
   // JSON Object of POST data
   const subscribeJSON = {
     client_id: clientID,
@@ -24,7 +24,7 @@ app.get('/create-sub', () => {
     object: 'user',
     aspect: 'media',
     verify_token: 'myVerifyToken',
-    callback_url: 'instagram.imballinst.com/sub-accept',
+    callback_url: 'http://instagram.imballinst.com/accept-sub',
   };
 
   // Stringify JSON and set header options
@@ -39,8 +39,12 @@ app.get('/create-sub', () => {
     },
   };
 
+  const callback = (json) => {
+    res.send(json);
+  };
+
   // Send request
-  httpsRequest(options, subscribeString);
+  httpsRequest(options, subscribeString, callback);
 });
 
 app.get('/accept-sub', (req, res) => {

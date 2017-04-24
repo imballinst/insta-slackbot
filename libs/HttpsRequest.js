@@ -1,10 +1,9 @@
-const http = require('http');
-const querystring = require('querystring');
+const https = require('https');
 
 const LogUtil = require('../libs/LogUtil');
 
-function httpRequest(options, data, callback) {
-  const req = http.request(options, (res) => {
+function httpsRequest(options, data, callback) {
+  const req = https.request(options, (res) => {
     LogUtil.winston.log('info', `STATUS: ${res.statusCode}`);
     LogUtil.winston.log('info', `HEADERS: ${res.headers}`);
 
@@ -32,10 +31,8 @@ function httpRequest(options, data, callback) {
   });
 
   // Write data to request body
-  const dataParams = querystring.stringify(data);
-
-  req.write(dataParams);
+  req.write(data);
   req.end();
 }
 
-module.exports = httpRequest;
+module.exports = httpsRequest;

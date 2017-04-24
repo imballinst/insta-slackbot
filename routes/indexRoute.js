@@ -12,11 +12,11 @@ const clientSecret = process.env.CLIENT_SECRET;
 
 // Routes
 app.get('/', (req, res) => {
-  res.send(`Hello World!`);
+  res.send('Hello World!');
 });
 
 // Create and Accept Subscription
-app.get('/create-sub', (req, res) => {
+app.get('/create-sub', () => {
   // JSON Object of POST data
   const subscribeJSON = {
     client_id: clientID,
@@ -35,12 +35,12 @@ app.get('/create-sub', (req, res) => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Content-Length': Buffer.byteLength(subscribeString)
+      'Content-Length': Buffer.byteLength(subscribeString),
     },
   };
 
   // Send request
-  httpsRequest(options, subCreateData);
+  httpsRequest(options, subscribeString);
 });
 
 app.get('/accept-sub', (req, res) => {
@@ -63,7 +63,7 @@ app.get('/list-sub', (req, res) => {
     method: 'GET',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Content-Length': Buffer.byteLength(listSubString)
+      'Content-Length': Buffer.byteLength(listSubString),
     },
   };
 
@@ -71,12 +71,12 @@ app.get('/list-sub', (req, res) => {
     res.send(json);
   };
 
-  httpsRequest(options, subListData);
+  httpsRequest(options, listSubString, callback);
 });
 
 // 404 Not Found
 app.get('*', (req, res) => {
-  res.send(`Not found!`);
+  res.send('Not found!');
 });
 
 // 500

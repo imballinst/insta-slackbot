@@ -3,6 +3,7 @@ const querystring = require('querystring');
 
 const app = require('../app');
 const httpsRequest = require('../libs/HttpsRequest');
+const replaceAccessToken = require('../libs/ReplaceAccessToken');
 
 // API things
 const clientID = process.env.CLIENT_ID;
@@ -52,6 +53,8 @@ app.get('/get-response-code', (req, res) => {
 
     const callback = (json) => {
       res.send(json);
+
+      replaceAccessToken(json.access_token);
     };
 
     // Send request

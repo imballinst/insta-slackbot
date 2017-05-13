@@ -9,6 +9,9 @@ const LogUtil = require('../libs/LogUtil');
 
 // Routes
 require('../routes/indexRoute');
+require('../routes/subscribeRoute');
+require('../routes/accessTokenRoute');
+require('../routes/errorRoute');
 
 // Server and Port
 const server = new http.Server(app);

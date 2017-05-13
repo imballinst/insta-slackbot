@@ -42,7 +42,7 @@ app.get('/get-response-code', (req, res) => {
     const getTokenString = querystring.stringify(getTokenJSON);
     const options = {
       hostname: 'api.instagram.com',
-      path: '/v1/subscriptions/',
+      path: '/oauth/access_token/',
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

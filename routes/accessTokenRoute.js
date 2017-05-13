@@ -54,7 +54,9 @@ app.get('/get-response-code', (req, res) => {
     const callback = (json) => {
       res.send(json);
 
-      replaceAccessToken(JSON.parse(json.access_token));
+      const jsonObject = JSON.parse(json);
+
+      replaceAccessToken(jsonObject.access_token);
     };
 
     // Send request

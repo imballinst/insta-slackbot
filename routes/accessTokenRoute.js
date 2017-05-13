@@ -34,7 +34,7 @@ app.get('/get-response-code', (req, res) => {
       client_id: clientID,
       client_secret: clientSecret,
       grant_type: 'authorization_code',
-      redirect_uri: 'http://instagram.imballinst.com/get-oauth-token',
+      redirect_uri: 'http://instagram.imballinst.com/get-response-code',
       code: req.query.code,
     };
 

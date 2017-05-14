@@ -31,7 +31,10 @@ function httpsRequest(options, data, callback) {
   });
 
   // Write data to request body
-  req.write(data);
+  if (options.method === 'POST' || options.method === 'PUT') {
+    req.write(data);
+  }
+
   req.end();
 }
 

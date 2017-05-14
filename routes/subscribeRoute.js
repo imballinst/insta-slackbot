@@ -58,17 +58,13 @@ app.get('/list-sub', (req, res) => {
   const listSubString = querystring.stringify(listSubJSON);
   const options = {
     hostname: 'api.instagram.com',
-    path: '/v1/subscriptions/',
+    path: `/v1/subscriptions?${listSubString}`,
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Content-Length': Buffer.byteLength(listSubString),
-    },
   };
 
   const callback = (json) => {
     res.send(json);
   };
 
-  httpsRequest(options, listSubString, callback);
+  httpsRequest(options, undefined, callback);
 });

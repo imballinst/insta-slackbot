@@ -7,6 +7,7 @@ const httpsRequest = require('../libs/HttpsRequest');
 // API things
 const clientID = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
+const clientAccessToken = process.env.ACCESS_TOKEN;
 
 // Create and Accept Subscription
 app.get('/create-sub', (_, res) => {
@@ -49,8 +50,7 @@ app.get('/accept-sub', (req, res) => {
 app.get('/list-sub', (req, res) => {
   // JSON Object of POST data
   const listSubJSON = {
-    client_id: clientID,
-    client_secret: clientSecret,
+    access_token: clientAccessToken,
   };
 
   const listSubString = querystring.stringify(listSubJSON);

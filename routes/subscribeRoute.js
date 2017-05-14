@@ -50,6 +50,8 @@ app.get('/accept-sub', (req, res) => {
 app.get('/list-sub', (req, res) => {
   // JSON Object of POST data
   const listSubJSON = {
+    client_id: clientID,
+    client_secret: clientSecret,
     access_token: clientAccessToken,
   };
 

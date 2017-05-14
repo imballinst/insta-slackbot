@@ -9,6 +9,10 @@ const app = express();
 app.use(express.static('public'));
 app.use(bodyParser.json()); // for parsing application/json
 
+// View
+app.set('view engine', 'ejs');
+app.set('views', './views');
+
 // Error handlers
 
 // Export app

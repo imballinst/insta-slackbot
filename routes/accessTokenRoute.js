@@ -3,7 +3,7 @@ const querystring = require('querystring');
 
 const app = require('../app');
 const httpsRequest = require('../libs/HttpsRequest');
-const replaceAccessToken = require('../libs/ReplaceAccessToken');
+// const replaceAccessToken = require('../libs/ReplaceAccessToken');
 
 // API things
 const clientID = process.env.CLIENT_ID;
@@ -54,9 +54,9 @@ app.get('/get-response-code', (req, res) => {
     const callback = (json) => {
       res.send(json);
 
-      const jsonObject = JSON.parse(json);
+      // const jsonObject = JSON.parse(json);
 
-      replaceAccessToken(jsonObject.access_token);
+      // replaceAccessToken(jsonObject.access_token);
     };
 
     // Send request
@@ -67,6 +67,15 @@ app.get('/get-response-code', (req, res) => {
 });
 
 // Last step to authorize, get the token
-app.get('/get-oauth-token', (req, res) => {
-  res.send(req.query);
+app.get('/change-access-token', (req, res) => {
+  res.render('index');
+});
+
+// Change access token, POST
+app.post('/change-access-token', (req, res) => {
+  console.log(req, res);
+  // const body = req.body;
+  // const params = req.params;
+  // console.log('test', params);
+  // res.send(params);
 });

@@ -51,7 +51,7 @@ app.get('/accept-sub', (req, res) => {
 
 app.post('/accept-sub', (req, res) => {
   // JSON Object of POST data
-  LogUtil.winston.log('info', `Got POST request from Instagram Subscriptions: ${req}`);
+  LogUtil.winston.log('info', 'Got POST request from Instagram Subscriptions: ', req.body);
 
   res.send('Hi!');
 });

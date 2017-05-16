@@ -43,9 +43,17 @@ app.get('/create-sub', (_, res) => {
   httpsRequest(options, subscribeString, callback);
 });
 
+// Callback URL
 app.get('/accept-sub', (req, res) => {
   // Send response just the hub.challenge query parameter
   res.send(req.query['hub.challenge']);
+});
+
+app.post('/accept-sub', (req, res) => {
+  // JSON Object of POST data
+  LogUtil.winston.log('info', `Got POST request from Instagram Subscriptions: ${req}`);
+
+  res.send('Hi!');
 });
 
 // List Subscription
@@ -69,12 +77,4 @@ app.get('/list-sub', (req, res) => {
   };
 
   httpsRequest(options, undefined, callback);
-});
-
-// List Subscription
-app.post('/list-sub', (req, res) => {
-  // JSON Object of POST data
-  LogUtil.winston.log('info', `Got POST request from Instagram Subscriptions: ${req}`);
-
-  res.send('Hi!');
 });

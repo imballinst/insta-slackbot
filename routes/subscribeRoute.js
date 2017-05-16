@@ -4,6 +4,8 @@ const querystring = require('querystring');
 const app = require('../app');
 const httpsRequest = require('../libs/HttpsRequest');
 
+const LogUtil = require('../libs/LogUtil');
+
 // API things
 const clientID = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
@@ -67,4 +69,12 @@ app.get('/list-sub', (req, res) => {
   };
 
   httpsRequest(options, undefined, callback);
+});
+
+// List Subscription
+app.post('/list-sub', (req, res) => {
+  // JSON Object of POST data
+  LogUtil.winston.log('info', `Got POST request from Instagram Subscriptions: ${req}`);
+
+  res.send('Hi!');
 });

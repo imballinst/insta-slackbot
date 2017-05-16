@@ -8,6 +8,9 @@ const app = express();
 // Middlewares
 app.use(express.static('public'));
 app.use(bodyParser.json()); // for parsing application/json
+app.use(bodyParser.urlencoded({ // for parsing URL-encoded bodies
+  extended: true,
+}));
 
 // View
 app.set('view engine', 'ejs');

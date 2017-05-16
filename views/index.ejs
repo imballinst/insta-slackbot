@@ -10,7 +10,15 @@
 </head>
 <body>
   <form method="POST" action="/change-access-token">
-    <input type="text" name="access_token">
+    <label for="access-token-input">
+      New Access Token
+      <input type="text" id="access-token-input" name="access_token">
+    </label>
+    <label for="change-token-password">
+      Change Token Password
+      <input type="password" id="change-token-password" name="password">
+    </label>
+
     <button type="submit">Submit</button>
   </form>
 </body>

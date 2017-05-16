@@ -3,11 +3,13 @@ const querystring = require('querystring');
 
 const app = require('../app');
 const httpsRequest = require('../libs/HttpsRequest');
-// const replaceAccessToken = require('../libs/ReplaceAccessToken');
+const replaceAccessToken = require('../libs/ReplaceAccessToken');
+const LogUtil = require('../libs/LogUtil');
 
 // API things
 const clientID = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
+const changeTokenPassword = process.env.ACCESS_TOKEN_PASSWORD;
 
 // First step to authorize, redirect to Instagram's redirect URI
 app.get('/authorize', (_, res) => {
@@ -53,10 +55,6 @@ app.get('/get-response-code', (req, res) => {
 
     const callback = (json) => {
       res.send(json);
-
-      // const jsonObject = JSON.parse(json);
-
-      // replaceAccessToken(jsonObject.access_token);
     };
 
     // Send request
@@ -73,9 +71,16 @@ app.get('/change-access-token', (req, res) => {
 
 // Change access token, POST
 app.post('/change-access-token', (req, res) => {
-  console.log(req, res);
-  // const body = req.body;
-  // const params = req.params;
-  // console.log('test', params);
-  // res.send(params);
+  const token = req.body.access_token;
+  const password = req.body.password;
+
+  if (password === changeTokenPassword) {
+    replaceAccessToken(token);
+
+    res.send('Access token change successful');
+
+    LogUtil.winston.log('info', `Access Token changed to ${token}`);
+  } else {
+    res.send('Access token change failed');
+  }
 });

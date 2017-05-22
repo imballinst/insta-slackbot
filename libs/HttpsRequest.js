@@ -11,16 +11,19 @@ function httpsRequest(options, data, callback) {
     res.setEncoding('utf8');
 
     // On response send data
+    let allData = '';
     res.on('data', (chunk) => {
       LogUtil.winston.log('info', `BODY: ${chunk}`);
 
-      if (typeof callback === 'function') {
-        callback(chunk);
-      }
+      allData += chunk;
     });
 
     // On response end
     res.on('end', () => {
+      if (typeof callback === 'function') {
+        callback(allData);
+      }
+
       LogUtil.winston.log('info', 'No more data in response.');
     });
   });

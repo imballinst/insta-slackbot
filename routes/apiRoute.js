@@ -19,7 +19,7 @@ app.get('/self', (_, res) => {
   const getSelfString = querystring.stringify(getSelfJSON);
   const options = {
     hostname: 'api.instagram.com',
-    path: `/v1/users/self/?${getSelfString}`,
+    path: `/v1/users/self?${getSelfString}`,
     method: 'GET',
   };
 
@@ -29,4 +29,26 @@ app.get('/self', (_, res) => {
 
   // Send request
   httpsRequest(options, getSelfString, callback);
+});
+
+app.get('/media/:mediaID', (req, res) => {
+  // JSON Object of POST data
+  const getMediaJSON = {
+    access_token: accessToken,
+  };
+
+  // Stringify JSON and set header options
+  const getMediaString = querystring.stringify(getMediaJSON);
+  const options = {
+    hostname: 'api.instagram.com',
+    path: `/v1/media/${req.params.mediaID}?${getMediaString}`,
+    method: 'GET',
+  };
+
+  const callback = (json) => {
+    res.send(json);
+  };
+
+  // Send request
+  httpsRequest(options, getMediaString, callback);
 });

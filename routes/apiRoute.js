@@ -8,27 +8,34 @@ const httpsRequest = require('../libs/HttpsRequest');
 // const clientID = process.env.CLIENT_ID;
 // const clientSecret = process.env.CLIENT_SECRET;
 const accessToken = process.env.ACCESS_TOKEN;
+const slackToken = process.env.SLACK_VERIFICATION_TOKEN;
 
-app.get('/self', (_, res) => {
-  // JSON Object of POST data
-  const getSelfJSON = {
-    access_token: accessToken,
-  };
+app.post('/self', (req, res) => {
+  const requestToken = req.body.token;
 
-  // Stringify JSON and set header options
-  const getSelfString = querystring.stringify(getSelfJSON);
-  const options = {
-    hostname: 'api.instagram.com',
-    path: `/v1/users/self?${getSelfString}`,
-    method: 'GET',
-  };
+  if (requestToken === slackToken) {
+    // JSON Object of POST data
+    const getSelfJSON = {
+      access_token: accessToken,
+    };
 
-  const callback = (json) => {
-    res.send(json);
-  };
+    // Stringify JSON and set header options
+    const getSelfString = querystring.stringify(getSelfJSON);
+    const options = {
+      hostname: 'api.instagram.com',
+      path: `/v1/users/self?${getSelfString}`,
+      method: 'GET',
+    };
 
-  // Send request
-  httpsRequest(options, getSelfString, callback);
+    const callback = (json) => {
+      res.send(json);
+    };
+
+    // Send request
+    httpsRequest(options, getSelfString, callback);
+  } else {
+    res.send('Token doesn\'t match!');
+  }
 });
 
 app.get('/media/:mediaID', (req, res) => {

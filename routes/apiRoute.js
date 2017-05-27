@@ -28,7 +28,7 @@ app.post('/self', (req, res) => {
     };
 
     const callback = (json) => {
-      res.send(json.stringify());
+      res.send(JSON.stringify(json));
     };
 
     // Send request

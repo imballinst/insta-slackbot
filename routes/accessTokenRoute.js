@@ -9,7 +9,7 @@ const LogUtil = require('../libs/LogUtil');
 // API things
 const clientID = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
-const changeTokenPassword = process.env.ACCESS_TOKEN_PASSWORD;
+const changeTokenPassword = process.env.SECURE_CHANGE_KEY;
 
 // First step to authorize, redirect to Instagram's redirect URI
 app.get('/authorize', (_, res) => {

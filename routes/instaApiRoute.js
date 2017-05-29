@@ -7,16 +7,16 @@ const httpsRequest = require('../libs/HttpsRequest');
 // API things
 // const clientID = process.env.CLIENT_ID;
 // const clientSecret = process.env.CLIENT_SECRET;
-const accessToken = process.env.ACCESS_TOKEN;
-const slackToken = process.env.SLACK_VERIFICATION_TOKEN;
+const instaAccessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
+const slackVerificationToken = process.env.SLACK_MESSAGE_VERIFICATION_TOKEN;
 
 app.post('/self', (req, res) => {
   const requestToken = req.body.token;
 
-  if (requestToken === slackToken) {
+  if (requestToken === slackVerificationToken) {
     // JSON Object of POST data
     const getSelfJSON = {
-      access_token: accessToken,
+      access_token: instaAccessToken,
     };
 
     // Stringify JSON and set header options
@@ -41,7 +41,7 @@ app.post('/self', (req, res) => {
 app.get('/media/:mediaID', (req, res) => {
   // JSON Object of POST data
   const getMediaJSON = {
-    access_token: accessToken,
+    access_token: instaAccessToken,
   };
 
   // Stringify JSON and set header options

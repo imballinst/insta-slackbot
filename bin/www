@@ -12,6 +12,7 @@ require('../routes/indexRoute');
 require('../routes/subscribeRoute');
 require('../routes/accessTokenRoute');
 require('../routes/instaApiRoute');
+require('../routes/slackApiRoute');
 require('../routes/errorRoute');
 
 // Server and Port

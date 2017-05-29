@@ -44,7 +44,7 @@ app.get('/create-sub', (_, res) => {
 });
 
 // Callback URL
-app.get('/accept-sub', (req, res) => {
+app.get('/callback-sub', (req, res) => {
   // Send response just the hub.challenge query parameter
   res.send(req.query['hub.challenge']);
 });

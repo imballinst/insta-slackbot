@@ -32,7 +32,7 @@ app.post('/self', (req, res) => {
     };
 
     // Send request
-    httpsRequest(options, getSelfString, callback);
+    httpsRequest(options, undefined, callback);
   } else {
     res.send('Token doesn\'t match!');
   }
@@ -57,5 +57,5 @@ app.get('/media/:mediaID', (req, res) => {
   };
 
   // Send request
-  httpsRequest(options, getMediaString, callback);
+  httpsRequest(options, undefined, callback);
 });

@@ -11,7 +11,7 @@ const LogUtil = require('../libs/LogUtil');
 require('../routes/indexRoute');
 require('../routes/subscribeRoute');
 require('../routes/accessTokenRoute');
-require('../routes/apiRoute');
+require('../routes/instaApiRoute');
 require('../routes/errorRoute');
 
 // Server and Port

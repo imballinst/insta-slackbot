@@ -10,7 +10,7 @@ const httpsRequest = require('../libs/HttpsRequest');
 // const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
 const slackAccessToken = process.env.SLACK_ACCESS_TOKEN;
 
-app.get('/public-channels', (_, res) => {
+app.get('/list-channels', (_, res) => {
   // JSON Object of POST data
   const getSelfJSON = {
     token: slackAccessToken,
@@ -34,7 +34,7 @@ app.get('/public-channels', (_, res) => {
   httpsRequest(options, getSelfString, callback);
 });
 
-app.get('/list-channels', (_, res) => {
+app.get('/list-users', (_, res) => {
   // JSON Object of POST data
   const getSelfJSON = {
     token: slackAccessToken,

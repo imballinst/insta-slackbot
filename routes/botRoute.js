@@ -3,7 +3,7 @@
 
 const LogUtil = require('../libs/LogUtil');
 
-// const app = require('../app');
+const app = require('../app');
 // const httpsRequest = require('../libs/HttpsRequest');
 
 // Bot module
@@ -11,6 +11,8 @@ const botLibs = require('../libs/Botkit');
 
 const botInstance = botLibs.instance;
 const botController = botLibs.controller;
+
+const slackChannelID = process.env.SLACK_CHANNEL;
 
 // Start the real-time messaging
 botInstance.startRTM((err) => {
@@ -20,7 +22,17 @@ botInstance.startRTM((err) => {
 });
 
 // On route hit
+app.post('/callback-sub', (req, res) => {
+  // JSON Object of POST data
+  LogUtil.winston.log('info', 'Got POST request from Instagram Subscriptions: ', req.body);
 
+  res.send();
+
+  botInstance.say({
+    text: 'Dapet subscribe nih',
+    channel: slackChannelID,
+  });
+});
 
 // List events
 const dMessage = 'direct_message';

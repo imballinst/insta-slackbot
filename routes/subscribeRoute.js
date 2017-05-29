@@ -4,7 +4,7 @@ const querystring = require('querystring');
 const app = require('../app');
 const httpsRequest = require('../libs/HttpsRequest');
 
-const LogUtil = require('../libs/LogUtil');
+// const LogUtil = require('../libs/LogUtil');
 
 // API things
 const clientID = process.env.CLIENT_ID;
@@ -20,7 +20,7 @@ app.get('/create-sub', (_, res) => {
     object: 'user',
     aspect: 'media',
     verify_token: 'myVerifyToken',
-    callback_url: 'http://instagram.imballinst.com/accept-sub',
+    callback_url: 'http://instagram.imballinst.com/callback-sub',
   };
 
   // Stringify JSON and set header options
@@ -47,13 +47,6 @@ app.get('/create-sub', (_, res) => {
 app.get('/accept-sub', (req, res) => {
   // Send response just the hub.challenge query parameter
   res.send(req.query['hub.challenge']);
-});
-
-app.post('/accept-sub', (req, res) => {
-  // JSON Object of POST data
-  LogUtil.winston.log('info', 'Got POST request from Instagram Subscriptions: ', req.body);
-
-  res.send('Hi!');
 });
 
 // List Subscription

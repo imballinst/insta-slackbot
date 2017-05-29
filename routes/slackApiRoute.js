@@ -33,3 +33,25 @@ app.get('/public-channels', (_, res) => {
   // Send request
   httpsRequest(options, getSelfString, callback);
 });
+
+app.get('/list-channels', (_, res) => {
+  // JSON Object of POST data
+  const getSelfJSON = {
+    token: slackAccessToken,
+  };
+
+  // Stringify JSON and set header options
+  const getSelfString = querystring.stringify(getSelfJSON);
+  const options = {
+    hostname: 'slack.com',
+    path: `/api/users.list?${getSelfString}`,
+    method: 'GET',
+  };
+
+  const callback = (json) => {
+    res.send(json);
+  };
+
+  // Send request
+  httpsRequest(options, getSelfString, callback);
+});

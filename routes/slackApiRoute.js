@@ -14,6 +14,8 @@ app.get('/public-channels', (_, res) => {
   // JSON Object of POST data
   const getSelfJSON = {
     token: slackAccessToken,
+    exclude_members: true,
+    exclude_archived: true,
   };
 
   // Stringify JSON and set header options

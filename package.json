@@ -39,6 +39,7 @@
   "homepage": "https://github.com/Imballinst/insta-slackbot#readme",
   "dependencies": {
     "body-parser": "^1.17.1",
+    "botkit": "^0.5.4",
     "del": "^2.2.2",
     "dotenv": "^4.0.0",
     "ejs": "^2.5.6",

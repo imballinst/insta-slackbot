@@ -6,6 +6,11 @@ const http = require('http');
 
 const app = require('../app');
 const LogUtil = require('../libs/LogUtil');
+const MongoDriver = require('../libs/MongoDriver');
+
+// Set MongoDriver as locals in app
+app.locals.mongoDriver = MongoDriver;
+app.locals.mongoDriver.openDBConnection();
 
 // Routes
 require('../routes/indexRoute');

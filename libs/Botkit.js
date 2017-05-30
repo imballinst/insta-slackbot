@@ -11,7 +11,10 @@ if (!token) {
   process.exit(1);
 }
 
-const controller = botkit.slackbot({ debug: false });
+const controller = botkit.slackbot({
+  debug: false,
+  require_delivery: true,
+});
 const instance = controller.spawn({ token });
 
 // Contain the bot instance and controller to be exported to the routes

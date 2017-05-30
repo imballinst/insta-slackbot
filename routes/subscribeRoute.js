@@ -4,8 +4,6 @@ const querystring = require('querystring');
 const app = require('../app');
 const httpsRequest = require('../libs/HttpsRequest');
 
-// const LogUtil = require('../libs/LogUtil');
-
 // API things
 const clientID = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;

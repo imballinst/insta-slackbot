@@ -5,9 +5,6 @@ const app = require('../app');
 const httpsRequest = require('../libs/HttpsRequest');
 
 // API things
-// const clientID = process.env.CLIENT_ID;
-// const clientSecret = process.env.CLIENT_SECRET;
-// const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
 const slackAccessToken = process.env.SLACK_ACCESS_TOKEN;
 
 app.get('/list-channels', (_, res) => {

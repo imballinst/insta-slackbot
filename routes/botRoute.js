@@ -1,18 +1,18 @@
 // Import modules
-// const querystring = require('querystring');
-
 const LogUtil = require('../libs/LogUtil');
+const botLibs = require('../libs/Botkit');
+const InstagramDriver = require('../libs/InstagramDriver');
 
 const app = require('../app');
-// const httpsRequest = require('../libs/HttpsRequest');
 
-// Bot module
-const botLibs = require('../libs/Botkit');
-
+// Bot things
 const botInstance = botLibs.instance;
 const botController = botLibs.controller;
 
 const slackChannelID = process.env.SLACK_CHANNEL;
+
+// Destructure functions
+const getMediaById = InstagramDriver.getMediaById;
 
 // Start the real-time messaging
 botInstance.startRTM((err) => {
@@ -24,14 +24,20 @@ botInstance.startRTM((err) => {
 // On route hit
 app.post('/callback-sub', (req, res) => {
   // JSON Object of POST data
+  const mediaID = req.body['0'].data.media_id;
   LogUtil.winston.log('info', 'Got POST request from Instagram Subscriptions: ', req.body);
 
-  res.send();
+  const callback = (json) => {
+    app.locals.mongoDriver.db.collection('test').insertOne(json);
+    res.send();
 
-  botInstance.say({
-    text: 'Dapet subscribe nih',
-    channel: slackChannelID,
-  });
+    botInstance.say({
+      text: 'Dapet subscribe nih',
+      channel: slackChannelID,
+    });
+  };
+
+  getMediaById(mediaID, callback);
 });
 
 // List events

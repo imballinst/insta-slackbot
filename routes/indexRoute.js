@@ -11,10 +11,10 @@ app.get('/', (req, res) => {
   QueryUtil.getMediasByTimerange(app.locals.mongoDriver.db, '20', callback);
 });
 
-app.get('/test', (req, res) => {
-  const callback = () => {
-    res.send('Inserted to db!');
-  };
+// app.get('/test', (req, res) => {
+//   const callback = () => {
+//     res.send('Inserted to db!');
+//   };
 
-  QueryUtil.testInsert(app.locals.mongoDriver.db, callback);
-});
+//   QueryUtil.testInsert(app.locals.mongoDriver.db, callback);
+// });

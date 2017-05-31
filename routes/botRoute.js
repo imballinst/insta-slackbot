@@ -28,7 +28,7 @@ app.post('/callback-sub', (req, res) => {
   LogUtil.winston.log('info', 'Got POST request from Instagram Subscriptions: ', req.body);
 
   const callback = (json) => {
-    app.locals.mongoDriver.db.collection('test').insertOne(json);
+    app.locals.mongoDriver.db.collection('postedmedias').insertOne(json);
     res.send();
 
     botInstance.say({

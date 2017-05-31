@@ -9,24 +9,30 @@ const LogUtil = require('../libs/LogUtil');
 // API things
 const clientID = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
+
+const enableAuthorize = process.env.ENABLE_AUTHORIZE;
 const changeTokenPassword = process.env.SECURE_CHANGE_KEY;
 
 // First step to authorize, redirect to Instagram's redirect URI
 app.get('/authorize', (_, res) => {
-  // JSON Object of POST data
-  const getCodeJSON = {
-    client_id: clientID,
-    redirect_uri: 'http://instagram.imballinst.com/get-response-code',
-    response_type: 'code',
-  };
+  if (enableAuthorize) {
+    // JSON Object of POST data
+    const getCodeJSON = {
+      client_id: clientID,
+      redirect_uri: 'http://instagram.imballinst.com/get-response-code',
+      response_type: 'code',
+    };
 
-  // Stringify JSON and set header options
-  const getCodeString = querystring.stringify(getCodeJSON);
+    // Stringify JSON and set header options
+    const getCodeString = querystring.stringify(getCodeJSON);
 
-  // Build up the complete path
-  const getCodeURL = `https://api.instagram.com/oauth/authorize/?${getCodeString}`;
+    // Build up the complete path
+    const getCodeURL = `https://api.instagram.com/oauth/authorize/?${getCodeString}`;
 
-  res.redirect(getCodeURL);
+    res.redirect(getCodeURL);
+  } else {
+    res.send('Authorization is disabled currently!');
+  }
 });
 
 // Second step to authorize, get response code

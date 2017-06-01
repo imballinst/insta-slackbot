@@ -72,7 +72,7 @@ botController.hears(['!count'], [ambient], (bot, message) => {
     }
   };
 
-  const [, startDate, endDate] = message.split(' ');
+  const [, startDate, endDate] = message.text.split(' ');
 
   const timeParams = { startDate, endDate };
 

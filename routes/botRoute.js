@@ -18,7 +18,7 @@ const getMediaById = InstagramDriver.getMediaById;
 // Start the real-time messaging
 botInstance.startRTM((err) => {
   if (err) {
-    //throw new Error(err);
+    throw new Error(err);
   }
 });
 

@@ -8,13 +8,18 @@ app.get('/', (req, res) => {
     res.send(result);
   };
 
-  QueryUtil.getMediasByTimerange(app.locals.mongoDriver.db, '20', callback);
+  const timeParams = {
+    startDate: '2017-05-30',
+    endDate: '2017-06-01',
+  };
+
+  QueryUtil.getTotalLikesInPeriod(app.locals.mongoDriver.db, timeParams, callback);
 });
 
-// app.get('/test', (req, res) => {
-//   const callback = () => {
-//     res.send('Inserted to db!');
-//   };
+app.get('/test', (req, res) => {
+  const callback = () => {
+    res.send('Inserted to db!');
+  };
 
-//   QueryUtil.testInsert(app.locals.mongoDriver.db, callback);
-// });
+  QueryUtil.testInsertMany(app.locals.mongoDriver.db, callback);
+});

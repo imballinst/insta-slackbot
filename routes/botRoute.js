@@ -2,6 +2,7 @@
 const LogUtil = require('../libs/LogUtil');
 const botLibs = require('../libs/Botkit');
 const InstagramDriver = require('../libs/InstagramDriver');
+const QueryUtil = require('../libs/QueryUtil');
 
 const app = require('../app');
 
@@ -44,6 +45,7 @@ app.post('/callback-sub', (req, res) => {
 const dMessage = 'direct_message';
 const dMention = 'direct_mention';
 const mention = 'mention';
+const ambient = 'ambient';
 
 // On receive events
 botController.hears(['hello', 'hi'], [dMessage, dMention, mention], (bot, message) => {
@@ -52,6 +54,27 @@ botController.hears(['hello', 'hi'], [dMessage, dMention, mention], (bot, messag
   bot.reply(message, 'Hello.');
 });
 
-botController.hears(['yuk'], [dMessage, dMention], (bot, message) => {
+botController.hears(['!count'], [ambient], (bot, message) => {
   LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+
+  const callback = (json) => {
+    if (json.success) {
+      const {
+        startDate: start,
+        endDate: end,
+        totalLikes,
+      } = json.data;
+
+      bot.say({
+        channel: slackChannelID,
+        text: `Total post likes count dari ${start} hingga ${end} ada ${totalLikes}.`,
+      });
+    }
+  };
+
+  const [ , startDate, endDate, ] = message.split(' ');
+
+  const timeParams = { startDate, endDate };
+
+  QueryUtil.getTotalLikesInPeriod(app.locals.mongoDriver.db, timeParams, callback);
 });

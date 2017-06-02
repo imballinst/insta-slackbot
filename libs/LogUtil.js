@@ -7,7 +7,7 @@ const logger = new (winston.Logger)({
   transports: [
     new (winston.transports.Console)({
       timestamp() {
-        return moment().format('YYYY-MM-DD HH:mm Z');
+        return moment().format('DD-MM-YYYY HH:mm Z');
       },
       formatter(options) {
         const level = `[${options.level.toUpperCase()}] `;

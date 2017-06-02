@@ -1,5 +1,8 @@
 const moment = require('moment');
 
+// Set locale
+moment.locale('id');
+
 function getMediasByTimerange(db, timeParams, query, callback) {
   const { startDate, endDate } = timeParams;
   const startDateMoment = moment(startDate);
@@ -48,7 +51,7 @@ function getMostLikedPosts(db, timeParams, callback) {
 
             array.push({
               link,
-              date: moment().unix(createdAt),
+              date: moment.unix(createdAt).format('dddd, Do MMMM YYYY'),
               likes: likes.count,
               text: caption.text,
             });
@@ -65,8 +68,8 @@ function getMostLikedPosts(db, timeParams, callback) {
         success: true,
         data: {
           posts: getPosts(),
-          startDate: startDateMoment.format('dddd, MMMM Do YYYY'),
-          endDate: endDateMoment.format('dddd, MMMM Do YYYY'),
+          startDate: startDateMoment.format('dddd, Do MMMM YYYY'),
+          endDate: endDateMoment.format('dddd, Do MMMM YYYY'),
         },
       };
 
@@ -85,8 +88,8 @@ function getTotalLikesInPeriod(db, timeParams, callback) {
       const jsonResponse = {
         success: true,
         data: {
-          startDate: startDateMoment.format('dddd, MMMM Do YYYY'),
-          endDate: endDateMoment.format('dddd, MMMM Do YYYY'),
+          startDate: startDateMoment.format('dddd, Do MMMM YYYY'),
+          endDate: endDateMoment.format('dddd, Do MMMM YYYY'),
           totalLikes: docs.reduce((sum, val) => sum + val.data.likes.count, 0),
         },
       };

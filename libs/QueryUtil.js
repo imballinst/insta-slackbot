@@ -34,8 +34,20 @@ function getMostLikedPosts(db, timeParams, callback) {
 
         docs.reduce((maxLikes, curDoc) => {
           // If likes of current post is higher, push to array
-          if (curDoc.data.likes.count >= maxLikes) {
-            array.push(curDoc);
+          const {
+            link,
+            created_time: createdAt,
+            likes,
+            caption,
+          } = curDoc.data;
+
+          if (likes.count >= maxLikes) {
+            array.push({
+              link,
+              date: moment().unix(createdAt),
+              likes: likes.count,
+              text: caption.text,
+            });
           }
 
           // Return the maximum number of likes

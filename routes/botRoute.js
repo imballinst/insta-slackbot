@@ -154,7 +154,7 @@ botController.hears(['!count'], [ambient], (bot, message) => {
           totalLikes,
         } = json.data;
 
-        bot.reply(message,  `Total post likes count dari ${start} hingga ${end} ada ${totalLikes}.`);
+        bot.reply(message, `Total post likes count dari ${start} hingga ${end} ada ${totalLikes}.`);
       }
     };
 

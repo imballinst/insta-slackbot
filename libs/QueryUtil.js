@@ -30,7 +30,7 @@ function getMostLikedPosts(db, timeParams, callback) {
     if (!err) {
       const { startDateMoment, endDateMoment } = momentProps;
       const getPosts = () => {
-        const array = [];
+        let array = [];
 
         docs.reduce((maxLikes, curDoc) => {
           // If likes of current post is higher, push to array
@@ -42,6 +42,10 @@ function getMostLikedPosts(db, timeParams, callback) {
           } = curDoc.data;
 
           if (likes.count >= maxLikes) {
+            if (likes.count > maxLikes) {
+              array = [];
+            }
+
             array.push({
               link,
               date: moment().unix(createdAt),

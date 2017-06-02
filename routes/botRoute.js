@@ -71,10 +71,11 @@ botController.hears(['!help'], [ambient], (bot, message) => {
   LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
   const textArrays = [
-    '*Aturan Umum*: format tanggal (*t1*, *t2*, ..., *tn*) yang valid adalah _DD-MM-YYYY_.',
+    '*Aturan Umum*: format tanggal *t1* dan *t2* yang valid adalah _DD-MM-YYYY_ (tanpa kurung siku). Apabila tidak dimasukkan, maka *t1* dan *t2* bernilai awal dan akhir dari minggu ini.\n',
     '1. *!help*: Memunculkan list _command_ yang ada,',
-    '2. *!count <t1> <t2>*: Menghitung jumlah likes dari post-post sejak *t1* hingga *t2*,',
-    '3. *!mostlikes <t1> <t2>*: Mencari post-post yang memiliki jumlah likes paling banyak.',
+    '2. *!review [t1] [t2]*: Memunculkan review post-post sejak *t1* hingga *t2*,',
+    '3. *!count [t1] [t2]*: Menghitung jumlah likes dari post-post sejak *t1* hingga *t2*,',
+    '4. *!mostlikes [t1] [t2]*: Mencari post-post yang memiliki jumlah likes paling banyak.',
   ];
   const text = textArrays.join('\n');
 

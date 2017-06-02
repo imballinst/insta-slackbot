@@ -120,5 +120,5 @@ botController.hears(['!mostlikes'], [ambient], (bot, message) => {
 
   const timeParams = { startDate, endDate };
 
-  QueryUtil.getTotalLikesInPeriod(app.locals.mongoDriver.db, timeParams, callback);
+  QueryUtil.getMostLikedPosts(app.locals.mongoDriver.db, timeParams, callback);
 });

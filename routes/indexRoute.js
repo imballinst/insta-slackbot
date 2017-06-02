@@ -13,13 +13,13 @@ app.get('/', (req, res) => {
     endDate: '2017-06-01',
   };
 
-  QueryUtil.getTotalLikesInPeriod(app.locals.mongoDriver.db, timeParams, callback);
+  QueryUtil.getMostLikedPosts(app.locals.mongoDriver.db, timeParams, callback);
 });
 
-app.get('/test', (req, res) => {
-  const callback = () => {
-    res.send('Inserted to db!');
-  };
+// app.get('/test', (req, res) => {
+//   const callback = () => {
+//     res.send('Inserted to db!');
+//   };
 
-  QueryUtil.testInsertMany(app.locals.mongoDriver.db, callback);
-});
+//   QueryUtil.testInsertMany(app.locals.mongoDriver.db, callback);
+// });

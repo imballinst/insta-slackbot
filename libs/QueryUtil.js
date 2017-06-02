@@ -1,18 +1,6 @@
 const moment = require('moment');
 
-function getMediasByTimerange(db, daysBackward, callback) {
-  const timeAnchor = moment().subtract(daysBackward, 'days').unix();
-
-  db.collection('postedmedias').find({
-    'data.created_time': {
-      $gt: timeAnchor.toString(),
-    },
-  }).toArray((err, docs) => {
-    callback(docs);
-  });
-}
-
-function getTotalLikesInPeriod(db, timeParams, callback) {
+function getMediasByTimerange(db, timeParams, query, callback) {
   const { startDate, endDate } = timeParams;
   const startDateMoment = moment(startDate);
   const endDateMoment = moment(endDate);
@@ -22,19 +10,76 @@ function getTotalLikesInPeriod(db, timeParams, callback) {
       $gt: startDateMoment.unix().toString(),
       $lt: endDateMoment.unix().toString(),
     },
-  }, {
-    'data.likes': 1,
-  }).toArray((err, docs) => {
-    const jsonResponse = {
-      success: true,
-      data: {
-        startDate: startDateMoment.format('dddd, MMMM Do YYYY'),
-        endDate: endDateMoment.format('dddd, MMMM Do YYYY'),
-        totalLikes: docs.reduce((sum, val) => sum + val.data.likes.count, 0),
-      },
-    };
-    callback(jsonResponse);
+  }, query).toArray((err, docs) => {
+    // Pass parameters to callback function
+    callback(err, docs, {
+      startDateMoment,
+      endDateMoment,
+    });
   });
+}
+
+function getMostLikedPosts(db, timeParams, callback) {
+  const query = {
+    'data.likes': 1,
+    'data.created_time': 1,
+    'data.caption.text': 1,
+    'data.link': 1,
+  };
+  const buildResponseJSON = (err, docs, momentProps) => {
+    if (!err) {
+      const { startDateMoment, endDateMoment } = momentProps;
+      const getPosts = () => {
+        const array = [];
+
+        docs.reduce((maxLikes, curDoc) => {
+          // If likes of current post is higher, push to array
+          if (curDoc.data.likes.count >= maxLikes) {
+            array.push(curDoc);
+          }
+
+          // Return the maximum number of likes
+          return Math.max(maxLikes, curDoc.data.likes.count);
+        }, -Infinity);
+
+        return array;
+      };
+
+      const jsonResponse = {
+        success: true,
+        data: {
+          posts: getPosts(),
+          startDate: startDateMoment.format('dddd, MMMM Do YYYY'),
+          endDate: endDateMoment.format('dddd, MMMM Do YYYY'),
+        },
+      };
+
+      callback(jsonResponse);
+    }
+  };
+
+  getMediasByTimerange(db, timeParams, query, buildResponseJSON);
+}
+
+function getTotalLikesInPeriod(db, timeParams, callback) {
+  const query = { 'data.likes': 1 };
+  const buildResponseJSON = (err, docs, momentProps) => {
+    if (!err) {
+      const { startDateMoment, endDateMoment } = momentProps;
+      const jsonResponse = {
+        success: true,
+        data: {
+          startDate: startDateMoment.format('dddd, MMMM Do YYYY'),
+          endDate: endDateMoment.format('dddd, MMMM Do YYYY'),
+          totalLikes: docs.reduce((sum, val) => sum + val.data.likes.count, 0),
+        },
+      };
+
+      callback(jsonResponse);
+    }
+  };
+
+  getMediasByTimerange(db, timeParams, query, buildResponseJSON);
 }
 
 function testInsert(db, callback) {
@@ -193,6 +238,7 @@ function testInsertMany(db, callback) {
 module.exports = {
   getMediasByTimerange,
   getTotalLikesInPeriod,
+  getMostLikedPosts,
   testInsert,
   testInsertMany,
 };

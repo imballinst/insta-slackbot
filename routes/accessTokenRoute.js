@@ -61,7 +61,9 @@ app.get('/get-response-code', (req, res) => {
     };
 
     const callback = (json) => {
-      res.send(json);
+      const accessToken = JSON.parse(json).access_token;
+
+      res.render('index', { accessToken });
     };
 
     // Send request
@@ -69,11 +71,6 @@ app.get('/get-response-code', (req, res) => {
   } else {
     res.send(req.query);
   }
-});
-
-// Last step to authorize, get the token
-app.get('/change-access-token', (req, res) => {
-  res.render('index');
 });
 
 // Change access token, POST
@@ -88,6 +85,8 @@ app.post('/change-access-token', (req, res) => {
 
     LogUtil.winston.log('info', `Access Token changed to ${token}`);
   } else {
+    LogUtil.winston.log('error', `Access Token change failed with password ${password}`);
+
     res.send('Access token change failed');
   }
 });

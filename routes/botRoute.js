@@ -68,7 +68,7 @@ if (isProd) {
   const ambient = 'ambient';
 
   // Helpers functions
-  const isDateValid = (string) => moment(string, 'DD-MM-YYYY').isValid()
+  const isDateValid = string => moment(string, 'DD-MM-YYYY').isValid();
 
   const setTimeParamsFromMessage = (message) => {
     // Set default if not defined to start of and end of week
@@ -80,7 +80,7 @@ if (isProd) {
     return { startDate, endDate };
   };
 
-  const formatDatetime = (momentObject) => momentObject.format('dddd, Do MMMM YYYY')
+  const formatDatetime = momentObject => momentObject.format('dddd, Do MMMM YYYY');
 
   // On receive events
   // Help

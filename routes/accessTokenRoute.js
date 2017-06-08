@@ -10,13 +10,18 @@ const LogUtil = require('../libs/LogUtil');
 const clientID = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
 
-const enableAuthorize = process.env.ENABLE_AUTHORIZE;
 const changeTokenPassword = process.env.SECURE_CHANGE_KEY;
 const serverUrl = process.env.SERVER_URL;
 
 // First step to authorize, redirect to Instagram's redirect URI
 app.get('/authorize', (_, res) => {
-  if (enableAuthorize === 'TRUE') {
+  res.render('index');
+});
+
+app.post('/authorize', (req, res) => {
+  const password = req.body.password;
+
+  if (password === changeTokenPassword) {
     // JSON Object of POST data
     const getCodeJSON = {
       client_id: clientID,
@@ -32,7 +37,7 @@ app.get('/authorize', (_, res) => {
 
     res.redirect(getCodeURL);
   } else {
-    res.send('Authorization is disabled currently!');
+    LogUtil.winston.log('error', `Authorization failed with password ${password}!`);
   }
 });
 
@@ -63,30 +68,16 @@ app.get('/get-response-code', (req, res) => {
     const callback = (json) => {
       const accessToken = JSON.parse(json).access_token;
 
-      res.render('index', { accessToken });
+      replaceAccessToken(accessToken);
+
+      res.send('Authorization and access token change successful!');
+
+      LogUtil.winston.log('info', `Access token changed to ${accessToken}`);
     };
 
     // Send request
     httpsRequest(options, getTokenString, callback);
   } else {
     res.send(req.query);
-  }
-});
-
-// Change access token, POST
-app.post('/change-access-token', (req, res) => {
-  const token = req.body.access_token;
-  const password = req.body.password;
-
-  if (password === changeTokenPassword) {
-    replaceAccessToken(token);
-
-    res.send('Access token change successful');
-
-    LogUtil.winston.log('info', `Access Token changed to ${token}`);
-  } else {
-    LogUtil.winston.log('error', `Access Token change failed with password ${password}`);
-
-    res.send('Access token change failed');
   }
 });

@@ -9,8 +9,7 @@
   </title>
 </head>
 <body>
-  <form method="POST" action="/change-access-token">
-    <input type="hidden" id="access-token-input" name="access_token" value="<%= accessToken %>">
+  <form method="POST" action="/authorize">
     <label for="change-token-password">
       Change Token Password
       <input type="password" id="change-token-password" name="password" autocomplete="off">

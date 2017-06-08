@@ -16,7 +16,7 @@ const serverUrl = process.env.SERVER_URL;
 
 // First step to authorize, redirect to Instagram's redirect URI
 app.get('/authorize', (_, res) => {
-  if (enableAuthorize) {
+  if (enableAuthorize === 'TRUE') {
     // JSON Object of POST data
     const getCodeJSON = {
       client_id: clientID,

@@ -3,18 +3,26 @@ const LogUtil = require('./LogUtil');
 const MongoClient = require('mongodb').MongoClient;
 
 // Connection URL
-const url = 'mongodb://localhost:27017/instagramDB';
+const url = 'mongodb://localhost:27017/instagram_db';
 
 const MongoDriver = {
   db: null,
-  openDBConnection() {
+  openDBConnection: (callback) => {
     MongoClient.connect(url, (err, db) => {
-      LogUtil.winston.log('info', 'Connected to MongoDB server successfully!');
+      if (err) {
+        LogUtil.winston.log('error', `Error happened when connecting to database: ${err}.`);
+      } else {
+        LogUtil.winston.log('info', 'Connected to MongoDB server successfully!');
 
-      this.db = db;
+        this.db = db;
+
+        if (typeof callback === 'function') {
+          callback(db);
+        }
+      }
     });
   },
-  closeDBConnection() {
+  closeDBConnection: () => {
     this.db.close();
   },
 };

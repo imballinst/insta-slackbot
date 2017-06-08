@@ -5,7 +5,7 @@ module.exports = {
       name: "insta-slackbot",
       script: "./bin/www",
       watch: true,
-      ignore_watch: ["resources/", ".git/"]
+      ignore_watch: [".git/"]
     }
   ]
 }

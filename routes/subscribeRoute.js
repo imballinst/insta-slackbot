@@ -9,6 +9,8 @@ const clientID = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
 const clientAccessToken = process.env.ACCESS_TOKEN;
 
+const serverUrl = process.env.SERVER_URL;
+
 // Create and Accept Subscription
 app.get('/create-sub', (_, res) => {
   // JSON Object of POST data
@@ -18,7 +20,7 @@ app.get('/create-sub', (_, res) => {
     object: 'user',
     aspect: 'media',
     verify_token: 'myVerifyToken',
-    callback_url: 'http://instagram.imballinst.com/callback-sub',
+    callback_url: `${serverUrl}/callback-sub`,
   };
 
   // Stringify JSON and set header options

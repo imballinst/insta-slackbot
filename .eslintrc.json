@@ -40,6 +40,13 @@
       2,
       {}
     ],
+    "comma-dangle": ["error", {
+      "arrays": "always-multiline",
+      "objects": "always-multiline",
+      "imports": "always-multiline",
+      "exports": "always-multiline",
+      "functions": "never"
+    }],
     "space-infix-ops": 2,
     "space-before-blocks": [
       2,

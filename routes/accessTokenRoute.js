@@ -12,6 +12,7 @@ const clientSecret = process.env.CLIENT_SECRET;
 
 const enableAuthorize = process.env.ENABLE_AUTHORIZE;
 const changeTokenPassword = process.env.SECURE_CHANGE_KEY;
+const serverUrl = process.env.SERVER_URL;
 
 // First step to authorize, redirect to Instagram's redirect URI
 app.get('/authorize', (_, res) => {
@@ -19,7 +20,7 @@ app.get('/authorize', (_, res) => {
     // JSON Object of POST data
     const getCodeJSON = {
       client_id: clientID,
-      redirect_uri: 'http://instagram.imballinst.com/get-response-code',
+      redirect_uri: `${serverUrl}/get-response-code`,
       response_type: 'code',
     };
 
@@ -43,7 +44,7 @@ app.get('/get-response-code', (req, res) => {
       client_id: clientID,
       client_secret: clientSecret,
       grant_type: 'authorization_code',
-      redirect_uri: 'http://instagram.imballinst.com/get-response-code',
+      redirect_uri: `${serverUrl}/get-response-code`,
       code: req.query.code,
     };
 

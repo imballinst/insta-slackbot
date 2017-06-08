@@ -16,11 +16,3 @@ app.get('/', (req, res) => {
   // QueryUtil.getMediasByTimerange(app.locals.mongoDriver.db, timeParams, {}, callback);
   QueryUtil.getMostLikedPosts(app.locals.mongoDriver.db, timeParams, callback);
 });
-
-// app.get('/test', (req, res) => {
-//   const callback = () => {
-//     res.send('Inserted to db!');
-//   };
-
-//   QueryUtil.testInsertMany(app.locals.mongoDriver.db, callback);
-// });

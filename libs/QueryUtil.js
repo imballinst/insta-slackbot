@@ -3,13 +3,14 @@ const moment = require('moment');
 // Set locale
 moment.locale('id');
 
+// Base getters
 function getMediasByTimerange(db, timeParams, query, callback) {
   const { startDate, endDate } = timeParams;
   const startDateMoment = moment(startDate, 'DD-MM-YYYY');
   const endDateMoment = moment(endDate, 'DD-MM-YYYY');
 
   db.collection('postedmedias').find({
-    'data.created_time': {
+    created_time: {
       $gt: startDateMoment.unix().toString(),
       $lt: endDateMoment.unix().toString(),
     },
@@ -22,12 +23,20 @@ function getMediasByTimerange(db, timeParams, query, callback) {
   });
 }
 
+function getFollowersCount(db, date, query, callback) {
+  db.collection('followers').find({ date }, query).toArray((err, docs) => {
+    // Pass parameters to callback function
+    callback(err, docs);
+  });
+}
+
+// Modified getters
 function getMostLikedPosts(db, timeParams, callback) {
   const query = {
-    'data.likes': 1,
-    'data.created_time': 1,
-    'data.caption.text': 1,
-    'data.link': 1,
+    likes: 1,
+    created_time: 1,
+    'caption.text': 1,
+    link: 1,
   };
   const buildResponseJSON = (err, docs, momentProps) => {
     if (!err) {
@@ -58,7 +67,7 @@ function getMostLikedPosts(db, timeParams, callback) {
           }
 
           // Return the maximum number of likes
-          return Math.max(maxLikes, curDoc.data.likes.count);
+          return Math.max(maxLikes, curDoc.likes.count);
         }, -Infinity);
 
         return array;
@@ -81,7 +90,7 @@ function getMostLikedPosts(db, timeParams, callback) {
 }
 
 function getTotalLikesInPeriod(db, timeParams, callback) {
-  const query = { 'data.likes': 1 };
+  const query = { likes: 1 };
   const buildResponseJSON = (err, docs, momentProps) => {
     if (!err) {
       const { startDateMoment, endDateMoment } = momentProps;
@@ -90,7 +99,7 @@ function getTotalLikesInPeriod(db, timeParams, callback) {
         data: {
           startDate: startDateMoment.format('dddd, Do MMMM YYYY'),
           endDate: endDateMoment.format('dddd, Do MMMM YYYY'),
-          totalLikes: docs.reduce((sum, val) => sum + val.data.likes.count, 0),
+          totalLikes: docs.reduce((sum, val) => sum + val.likes.count, 0),
         },
       };
 
@@ -101,8 +110,30 @@ function getTotalLikesInPeriod(db, timeParams, callback) {
   getMediasByTimerange(db, timeParams, query, buildResponseJSON);
 }
 
+function getFollowersCountSince(db, timestamp, callback) {
+  const query = {};
+  const buildResponseJSON = (err, docs) => {
+    if (!err) {
+      const { date, followersCount } = docs;
+      const jsonResponse = {
+        success: true,
+        data: {
+          date,
+          followersCount,
+        },
+      };
+
+      callback(jsonResponse);
+    }
+  };
+
+  getFollowersCount(db, timestamp, query, buildResponseJSON);
+}
+
 module.exports = {
   getMediasByTimerange,
+  getFollowersCount,
   getTotalLikesInPeriod,
   getMostLikedPosts,
+  getFollowersCountSince,
 };

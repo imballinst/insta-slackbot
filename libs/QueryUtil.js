@@ -11,7 +11,7 @@ function buildSortObject(sortString) {
     // If it is defined
     const sortSubstring = sortString.substr(5);
 
-    const [sortedField, sortOrder,] = sortSubstring.split('-');
+    const [sortedField, sortOrder] = sortSubstring.split('-');
 
     const isFieldValid =
       sortedField === 'time' ||
@@ -25,7 +25,6 @@ function buildSortObject(sortString) {
         [`${sortedField}`]: sortOrder === 'asc' ? 1 : -1,
       };
     }
-    console.log(sortedField, sortOrder, sortObject);
   }
 
   return sortObject;

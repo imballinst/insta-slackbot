@@ -153,10 +153,10 @@ if (isProd) {
       };
 
       const query = {
-        'likes': 1,
-        'created_time': 1,
+        likes: 1,
+        created_time: 1,
         'caption.text': 1,
-        'link': 1,
+        link: 1,
       };
 
       QueryUtil.getMediasByTimerange(app.locals.mongoDriver.db, params, query, callback);

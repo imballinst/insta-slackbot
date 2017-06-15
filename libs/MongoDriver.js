@@ -9,6 +9,7 @@ const MongoDriver = {
   db: null,
   openDBConnection(callback) {
     const that = this;
+    that.closeDBConnection = that.closeDBConnection.bind(that);
 
     MongoClient.connect(url, (err, db) => {
       if (err) {
@@ -17,7 +18,6 @@ const MongoDriver = {
         LogUtil.winston.log('info', 'Connected to MongoDB server successfully!');
 
         that.db = db;
-
         if (typeof callback === 'function') {
           callback(db);
         }

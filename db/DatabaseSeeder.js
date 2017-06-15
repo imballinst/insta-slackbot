@@ -74,9 +74,9 @@ function insertMockData(db, callback) {
       users_in_photo: [
 
       ],
-    },
-    meta: {
-      code: 200,
+      meta: {
+        code: 200,
+      }
     });
   }
 

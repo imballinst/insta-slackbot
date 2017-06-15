@@ -30,7 +30,8 @@ if (isProd) {
   const startRTM = () => {
     botInstance.startRTM((err) => {
       if (err) {
-        throw new Error(err);
+        LogUtil.winston.log('error', err);
+        process.exit(1);
       }
     });
   };
@@ -39,7 +40,7 @@ if (isProd) {
   startRTM();
 
   // Start the real-time messaging if it is closed
-  botController.on('close_rtm', () => {
+  botController.on('rtm_close', () => {
     LogUtil.winston.log('info', 'RTM closed. Restarting RTM now!');
 
     startRTM();
@@ -47,16 +48,17 @@ if (isProd) {
 
   // On route hit
   app.post('/callback-sub', (req, res) => {
+    LogUtil.winston.log('info', 'Got POST request from Instagram Subscriptions: ', req.body);
+
     // JSON Object of POST data
     const mediaID = req.body['0'].data.media_id;
-    LogUtil.winston.log('info', 'Got POST request from Instagram Subscriptions: ', req.body);
 
     const callback = (json) => {
       app.locals.mongoDriver.db.collection('postedmedias').insertOne(json);
       res.send();
 
       botInstance.say({
-        text: 'Dapet subscribe nih',
+        text: `Dapet subscribe nih: ${JSON.stringify(json)}`,
         channel: slackChannelID,
       });
     };
@@ -70,14 +72,15 @@ if (isProd) {
   // Helpers functions
   const isDateValid = string => moment(string, 'DD-MM-YYYY').isValid();
 
-  const setTimeParamsFromMessage = (message) => {
+  const setParamsFromMessage = (message) => {
     // Set default if not defined to start of and end of week
     const [,
       startDate = moment().startOf('week'),
       endDate = moment().endOf('week'),
+      sort,
     ] = message.text.split(' ');
 
-    return { startDate, endDate };
+    return { startDate, endDate, sort };
   };
 
   const formatDatetime = momentObject => momentObject.format('dddd, Do MMMM YYYY');
@@ -88,11 +91,18 @@ if (isProd) {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
     const textArrays = [
-      '*Aturan Umum*: format tanggal *t1* dan *t2* yang valid adalah _DD-MM-YYYY_ (tanpa kurung siku). Apabila tidak dimasukkan, maka *t1* dan *t2* bernilai awal dan akhir dari minggu ini.\n',
-      '1. *!help*: Memunculkan list _command_ yang ada,',
-      '2. *!review [t1] [t2]*: Memunculkan review post-post sejak *t1* hingga *t2*,',
-      '3. *!count [t1] [t2]*: Menghitung jumlah likes dari post-post sejak *t1* hingga *t2*,',
-      '4. *!mostlikes [t1] [t2]*: Mencari post-post yang memiliki jumlah likes paling banyak.',
+      '*Format Query:* _[command]_ _[t1]_ _[t2]_ _[sort]_',
+      '  • _[command]_ *(wajib)*: adalah perintah yang diberikan kepada bot.',
+      '     1. *!help*: Memunculkan list _command_ yang ada,',
+      '     2. *!review*: Memunculkan review post-post sejak _[t1]_ hingga _[t2]_,',
+      '     3. *!count*: Menghitung jumlah likes dari post-post sejak _[t1]_ hingga _[t2]_,',
+      '     4. *!mostlikes*: Mencari post-post yang memiliki jumlah likes paling banyak sejak _[t1]_ hingga _[t2]_.',
+      '  • _[t1]_ *(opsional)*:, waktu awal dengan format _DD-MM-YYYY_. *Default*: hari Senin pada minggu ini.',
+      '  • _[t2]_ *(opsional)*:, waktu akhir dengan format _DD-MM-YYYY_. *Default*: hari Minggu pada minggu ini.',
+      '  • _[sort]_ *(opsional)*:, mengurutkan hasil query berdasarkan atribut dengan format _[field]-[order]_. *Default*: unsorted.',
+      '     1. *[field]*: pilihan field yang dapat diurutkan diantaranya *time*, *likes*, *comments*, *tags*,',
+      '     2. *[order]*: pilihan order, yaitu *asc* (kecil ke besar) dan *desc* (besar ke kecil).\n',
+      '*Contoh Query:* !review 07-06-2017 15-06-2017 sort:likes-asc',
     ];
     const text = textArrays.join('\n');
 
@@ -103,10 +113,9 @@ if (isProd) {
   botController.hears(['!review'], [ambient], (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-    const timeParams = setTimeParamsFromMessage(message);
-    const { startDate, endDate } = timeParams;
+    const params = setParamsFromMessage(message);
 
-    if (isDateValid(startDate) && isDateValid(endDate)) {
+    if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
       // If the dates are valid or if review is not defined; it is current week
       const callback = (err, posts, momentProps) => {
         if (!err) {
@@ -125,7 +134,7 @@ if (isProd) {
                 created_time: date,
                 likes,
                 caption,
-              } = post.data;
+              } = post;
               const createdAt = formatDatetime(moment.unix(date));
 
               // Manually concat for each post
@@ -144,13 +153,13 @@ if (isProd) {
       };
 
       const query = {
-        'data.likes': 1,
-        'data.created_time': 1,
-        'data.caption.text': 1,
-        'data.link': 1,
+        'likes': 1,
+        'created_time': 1,
+        'caption.text': 1,
+        'link': 1,
       };
 
-      QueryUtil.getMediasByTimerange(app.locals.mongoDriver.db, timeParams, query, callback);
+      QueryUtil.getMediasByTimerange(app.locals.mongoDriver.db, params, query, callback);
     } else {
       bot.reply(message, 'Tanggal input tidak valid!');
     }
@@ -160,10 +169,9 @@ if (isProd) {
   botController.hears(['!count'], [ambient], (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-    const timeParams = setTimeParamsFromMessage(message);
-    const { startDate, endDate } = timeParams;
+    const params = setParamsFromMessage(message);
 
-    if (isDateValid(startDate) && isDateValid(endDate)) {
+    if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
       const callback = (json) => {
         if (json.success) {
           const {
@@ -179,7 +187,7 @@ if (isProd) {
         }
       };
 
-      QueryUtil.getTotalLikesInPeriod(app.locals.mongoDriver.db, timeParams, callback);
+      QueryUtil.getTotalLikesInPeriod(app.locals.mongoDriver.db, params, callback);
     } else {
       bot.reply(message, 'Tanggal input tidak valid!');
     }
@@ -189,10 +197,9 @@ if (isProd) {
   botController.hears(['!mostlikes'], [ambient], (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-    const timeParams = setTimeParamsFromMessage(message);
-    const { startDate, endDate } = timeParams;
+    const params = setParamsFromMessage(message);
 
-    if (isDateValid(startDate) && isDateValid(endDate)) {
+    if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
       const callback = (json) => {
         if (json.success) {
           const {
@@ -222,7 +229,7 @@ if (isProd) {
         }
       };
 
-      QueryUtil.getMostLikedPosts(app.locals.mongoDriver.db, timeParams, callback);
+      QueryUtil.getMostLikedPosts(app.locals.mongoDriver.db, params, callback);
     } else {
       bot.reply(message, 'Tanggal input tidak valid!');
     }

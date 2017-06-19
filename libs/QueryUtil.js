@@ -7,12 +7,14 @@ moment.locale('id');
 function buildSortObject(sortString) {
   let sortObject = {};
 
-  if (sortString) {
-    // If it is defined
+  if (sortString && sortString.substr(0, 5) === 'sort:') {
+    // If it is defined and is valid sort query
+    // Cut the 'sort:' substring
     const sortSubstring = sortString.substr(5);
 
     const [sortedField, sortOrder] = sortSubstring.split('-');
 
+    // Valid fields and orders
     const isFieldValid =
       sortedField === 'time' ||
       sortedField === 'likes' ||
@@ -20,7 +22,9 @@ function buildSortObject(sortString) {
       sortedField === 'tags';
     const isOrderValid = sortOrder === 'asc' || sortOrder === 'desc';
 
+    // Check if the inputs are valid
     if (isFieldValid && isOrderValid) {
+      // Mongo sorting asc is 1 and desc is -1
       sortObject = {
         [`${sortedField}`]: sortOrder === 'asc' ? 1 : -1,
       };
@@ -40,8 +44,8 @@ function getMediasByTimerange(db, params, query, callback) {
   db.collection('postedmedias')
     .find({
       created_time: {
-        $gt: startDateMoment.unix().toString(),
-        $lt: endDateMoment.unix().toString(),
+        $gte: startDateMoment.unix().toString(),
+        $lte: endDateMoment.unix().toString(),
       },
     }, query)
     .sort(sortObject)
@@ -54,8 +58,17 @@ function getMediasByTimerange(db, params, query, callback) {
     });
 }
 
-function getFollowersCount(db, date, query, callback) {
-  db.collection('followers').find({ date }, query).toArray((err, docs) => {
+function getFollowersCount(db, params, callback) {
+  const { startDate, endDate } = params;
+  const startDateMoment = moment(startDate, 'DD-MM-YYYY');
+  const endDateMoment = moment(endDate, 'DD-MM-YYYY');
+
+  db.collection('followers').find({
+    time: {
+      $gte: startDateMoment.unix().toString(),
+      $lte: endDateMoment.unix().toString(),
+    }
+  }).toArray((err, docs) => {
     // Pass parameters to callback function
     callback(err, docs);
   });
@@ -141,24 +154,19 @@ function getTotalLikesInPeriod(db, params, callback) {
   getMediasByTimerange(db, params, query, buildResponseJSON);
 }
 
-function getFollowersCountSince(db, timestamp, callback) {
-  const query = {};
-  const buildResponseJSON = (err, docs) => {
+function getFollowersCountSince(db, params, callback) {
+  const buildResponseJSON = (err, data) => {
     if (!err) {
-      const { date, followersCount } = docs;
       const jsonResponse = {
         success: true,
-        data: {
-          date,
-          followersCount,
-        },
+        data,
       };
 
       callback(jsonResponse);
     }
   };
 
-  getFollowersCount(db, timestamp, query, buildResponseJSON);
+  getFollowersCount(db, params, buildResponseJSON);
 }
 
 module.exports = {

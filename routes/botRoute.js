@@ -31,7 +31,6 @@ if (isProd) {
     botInstance.startRTM((err) => {
       if (err) {
         LogUtil.winston.log('error', err);
-        process.exit(1);
       }
     });
   };
@@ -230,6 +229,45 @@ if (isProd) {
       };
 
       QueryUtil.getMostLikedPosts(app.locals.mongoDriver.db, params, callback);
+    } else {
+      bot.reply(message, 'Tanggal input tidak valid!');
+    }
+  });
+
+  // Get post(s) with the most likes in a timerange
+  botController.hears(['!followers'], [ambient], (bot, message) => {
+    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+
+    const params = setParamsFromMessage(message);
+
+    if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
+      const callback = (json) => {
+        if (json.success) {
+          const data = json.data;
+          const length = data.length;
+          let botMsg = '';
+
+          if (length) {
+            const start = formatDatetime(moment.unix(data[0].time));
+            const end = formatDatetime(moment.unix(data[length - 1].time));
+
+            botMsg = `Jumlah followers dari *${start}* hingga *${end}*:\n`;
+
+            data.forEach((followersDay, i) => {
+              const { time, followers_count: followersCount } = followersDay;
+              const timeFormat = formatDatetime(moment.unix(time));
+
+              botMsg += `${i + 1}. *${timeFormat}*: *${followersCount}* akun.\n`;
+            });
+          } else {
+            botMsg = 'Query tidak dapat menemukan data yang diminta. Silahkan coba lagi.';
+          }
+
+          bot.reply(message, botMsg);
+        }
+      };
+
+      QueryUtil.getFollowersCountSince(app.locals.mongoDriver.db, params, callback);
     } else {
       bot.reply(message, 'Tanggal input tidak valid!');
     }

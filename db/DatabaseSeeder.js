@@ -8,16 +8,18 @@ const LogUtil = require('../libs/LogUtil');
 const isProd = process.env.NODE_ENV === 'production';
 
 function insertMockData(db, callback) {
-  const array = [];
+  const mediaArray = [];
+  const followerArray = [];
+  let followersCount = 500;
 
   // Function to random a number between min and max
   const getRandomNumber = (min, max) => Math.floor((Math.random() * (max - min)) + min);
 
   // Insert mock data for 14 days backward
-  for (let i = 0; i < 30; i += 1) {
-    const time = moment().subtract(i, 'days').unix();
+  for (let i = 30; i >= 0; i -= 1) {
+    const time = moment().utcOffset(7).hour(0).minute(0).second(0).subtract(i, 'days').unix();
 
-    array.push({
+    mediaArray.push({
       id: '1516059927444791289_1945373804',
       user: {
         id: '1945373804',
@@ -78,19 +80,31 @@ function insertMockData(db, callback) {
         code: 200,
       }
     });
+
+    // Followers
+    followerArray.push({ time: time.toString(), followers_count: followersCount });
+    followersCount += getRandomNumber(1, 10);
   }
 
-  // Insert pushed arrays into postedmedias collection
-  db.collection('postedmedias').insertMany(array, (err, r) => {
+  // Insert pushed mediaArrays into postedmedias collection
+  db.collection('postedmedias').insertMany(mediaArray, (err) => {
     if (err) {
       LogUtil.winston.log('error', 'Failed to mock "postedmedias" collection!');
     } else {
       LogUtil.winston.log('info', 'Successfully mocked "postedmedias" collection!');
     }
 
-    if (typeof callback === 'function') {
-      callback(db);
-    }
+    db.collection('followers').insertMany(followerArray, (err) => {
+      if (err) {
+        LogUtil.winston.log('error', 'Failed to mock "followers" collection!');
+      } else {
+        LogUtil.winston.log('info', 'Successfully mocked "followers" collection!');
+      }
+
+      if (typeof callback === 'function') {
+        callback(db);
+      }
+    });
   });
 }
 
@@ -103,9 +117,17 @@ function clearCollection(db, callback) {
       LogUtil.winston.log('info', 'Successfully truncated "postedmedias" collection!');
     }
 
-    if (typeof callback === 'function') {
-      callback(db);
-    }
+    db.collection('followers').deleteMany({}, (err, r) => {
+      if (err) {
+        LogUtil.winston.log('error', 'Failed to truncate "postedmedias" collection!');
+      } else {
+        LogUtil.winston.log('info', 'Successfully truncated "postedmedias" collection!');
+      }
+
+      if (typeof callback === 'function') {
+        callback(db);
+      }
+    });
   });
 }
 

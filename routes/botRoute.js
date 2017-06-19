@@ -73,9 +73,20 @@ if (isProd) {
 
   const setParamsFromMessage = (message) => {
     // Set default if not defined to start of and end of week
+    const defaultStartDate = moment()
+      .hour(0)
+      .minute(0)
+      .second(0)
+      .startOf('week');
+    const defaultEndDate = moment()
+      .hour(0)
+      .minute(0)
+      .second(0)
+      .endOf('week');
+
     const [,
-      startDate = moment().startOf('week'),
-      endDate = moment().endOf('week'),
+      startDate = defaultStartDate,
+      endDate = defaultEndDate,
       sort,
     ] = message.text.split(' ');
 
@@ -123,10 +134,11 @@ if (isProd) {
             endDateMoment: end,
           } = momentProps;
           const length = posts.length;
-          let botMsg = `Weekly review dari ${formatDatetime(start)} ` +
-            `hingga ${formatDatetime(end)}:\n`;
+          let botMsg = '';
 
           if (length) {
+            botMsg = `Review dari ${formatDatetime(start)} hingga ${formatDatetime(end)}:\n`;
+
             posts.forEach((post, i) => {
               const {
                 link,
@@ -221,7 +233,7 @@ if (isProd) {
               botMsg += (i + 1 < length) ? '\n' : '';
             });
           } else {
-            botMsg = `Tidak ada post dari ${formatDatetime(start)} hingga ${formatDatetime(end)}`;
+            botMsg = `Tidak ada post dari ${start} hingga ${end}`;
           }
 
           bot.reply(message, botMsg);

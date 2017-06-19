@@ -67,7 +67,7 @@ function getFollowersCount(db, params, callback) {
     time: {
       $gte: startDateMoment.unix().toString(),
       $lte: endDateMoment.unix().toString(),
-    }
+    },
   }).toArray((err, docs) => {
     // Pass parameters to callback function
     callback(err, docs);

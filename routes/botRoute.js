@@ -52,12 +52,14 @@ if (isProd) {
     const mediaID = req.body['0'].data.media_id;
 
     const callback = (json) => {
-      app.locals.mongoDriver.db.collection('postedmedias').insertOne(json);
+      const jsonObject = JSON.parse(json);
+      const data = jsonObject.data;
+      LogUtil.winston.log('info', 'Tes2', typeof json, typeof jsonObject);
+      app.locals.mongoDriver.db.collection('postedmedias').insertOne(data);
       res.send();
-      LogUtil.winston.log('info', 'tes', json);
-      LogUtil.winston.log('info', 'tes2', json.data);
+
       botInstance.say({
-        text: `Ada post baru nih di Instagram! ${json.data.link}\n\n${json.data.caption.text}`,
+        text: `Ada post baru nih di Instagram! ${data.link}\n\n${data.caption.text}`,
         channel: slackChannelID,
       });
     };

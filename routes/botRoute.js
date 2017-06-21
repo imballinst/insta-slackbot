@@ -53,15 +53,21 @@ if (isProd) {
 
     const callback = (json) => {
       const jsonObject = JSON.parse(json);
-      const data = jsonObject.data;
-      LogUtil.winston.log('info', 'Tes2', typeof json, typeof jsonObject);
-      app.locals.mongoDriver.db.collection('postedmedias').insertOne(data);
-      res.send();
+      const { data, meta } = jsonObject;
 
-      botInstance.say({
-        text: `Ada post baru nih di Instagram! ${data.link}\n\n${data.caption.text}`,
-        channel: slackChannelID,
-      });
+      if (meta.code === 200) {
+        // If media exists
+        app.locals.mongoDriver.db.collection('postedmedias').insertOne(data);
+        res.send();
+
+        botInstance.say({
+          text: `Ada post baru nih di Instagram! ${data.link}\n\n${data.caption.text}`,
+          channel: slackChannelID,
+        });
+      } else {
+        // If media doesn't exist
+        LogUtil.winston.log('error', 'Media not found!');
+      }
     };
 
     getMediaById(mediaID, callback);

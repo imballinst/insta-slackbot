@@ -53,7 +53,7 @@ if (isProd) {
 
     const callback = (json) => {
       const data = json.data;
-      LogUtil.winston.log('info', data);
+      LogUtil.winston.log('info', json);
       app.locals.mongoDriver.db.collection('postedmedias').insertOne(data);
       res.send();
 

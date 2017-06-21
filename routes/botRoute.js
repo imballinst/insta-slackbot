@@ -8,13 +8,12 @@ const QueryUtil = require('../libs/QueryUtil');
 
 const app = require('../app');
 
+// Get node environment
 const slackChannelID = process.env.SLACK_CHANNEL;
+const isProd = process.env.NODE_ENV === 'production';
 
 // Destructure functions
 const getMediaById = InstagramDriver.getMediaById;
-
-// Get node environment
-const isProd = process.env.NODE_ENV === 'production';
 
 if (isProd) {
   // If app is running in production mode
@@ -57,7 +56,7 @@ if (isProd) {
       res.send();
 
       botInstance.say({
-        text: `Dapet subscribe nih: ${JSON.stringify(json)}`,
+        text: `Ada post baru nih di Instagram! ${json.link}\n\n${json.caption.text}`,
         channel: slackChannelID,
       });
     };

@@ -61,7 +61,7 @@ if (isProd) {
         res.send();
 
         botInstance.say({
-          text: `Ada post baru nih di Instagram! ${data.link}\n\n${data.caption.text}`,
+          text: `Ada post baru nih di Instagram! ${data.link}\n\n"${data.caption.text}"`,
           channel: slackChannelID,
         });
       } else {

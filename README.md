@@ -39,10 +39,10 @@ Available sorting parameters for sort argument:
 
 #### List of Administration Commands
 
-Command     | Description                       |
------------ | --------------------------------- |
-!promote    | Grants given user admin privilege |
-!demote     | Removes privilege from given user |
+Command     | Description                      |
+----------- | -------------------------------- |
+!promote    | Grant given user admin privilege |
+!demote     | Remove privilege from given user |
 
 #### Administration Commands Arguments
 

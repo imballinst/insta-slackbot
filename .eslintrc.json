@@ -64,7 +64,8 @@
       2,
       {
         "ignoreRegExpLiterals": true,
-        "ignoreStrings": true
+        "ignoreStrings": true,
+        "ignoreComments": true
       }
     ]
   },

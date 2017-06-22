@@ -1,10 +1,10 @@
-const moment = require('moment');
+// const moment = require('moment');
 
 // Import modules
 const LogUtil = require('../libs/LogUtil');
 const BotLibs = require('../libs/Botkit');
 const InstagramDriver = require('../libs/InstagramDriver');
-const QueryUtil = require('../libs/QueryUtil');
+// const QueryUtil = require('../libs/QueryUtil');
 
 const app = require('../app');
 
@@ -73,35 +73,57 @@ if (isProd) {
     getMediaById(mediaID, callback);
   });
 
+  // Helpers functions
+  // const isDateValid = string => moment(string, 'DD-MM-YYYY').isValid();
+
+  // const parseMessage = (message) => {
+  //   // Variables
+  //   const [command, ...args] = message.split(' ');
+  //   const returnedObject = {};
+
+  //   // Set object properties
+  //   returnedObject.command = command;
+
+  //   // Classify message based on its arguments
+  //   if (args.length === 0) {
+  //     returnedObject.type = 'invalid';
+  //   } else if (args.includes('--help')) {
+  //     returnedObject.type = 'help';
+  //   } else {
+  //     returnedObject.type = 'query';
+
+  //     // Think about something that could easily parse based on commands
+  //   }
+
+  //   return returnedObject;
+  // };
+
+  // const setParamsFromMessage = (message) => {
+  //   // Set default if not defined to start of and end of week
+  //   const defaultStartDate = moment()
+  //     .hour(0)
+  //     .minute(0)
+  //     .second(0)
+  //     .startOf('week');
+  //   const defaultEndDate = moment()
+  //     .hour(0)
+  //     .minute(0)
+  //     .second(0)
+  //     .endOf('week');
+
+  //   const [,
+  //     startDate = defaultStartDate,
+  //     endDate = defaultEndDate,
+  //     sort,
+  //   ] = message.text.split(' ');
+
+  //   return { startDate, endDate, sort };
+  // };
+
+  // const formatDatetime = momentObject => momentObject.format('dddd, Do MMMM YYYY');
+
   // List events
   const ambient = 'ambient';
-
-  // Helpers functions
-  const isDateValid = string => moment(string, 'DD-MM-YYYY').isValid();
-
-  const setParamsFromMessage = (message) => {
-    // Set default if not defined to start of and end of week
-    const defaultStartDate = moment()
-      .hour(0)
-      .minute(0)
-      .second(0)
-      .startOf('week');
-    const defaultEndDate = moment()
-      .hour(0)
-      .minute(0)
-      .second(0)
-      .endOf('week');
-
-    const [,
-      startDate = defaultStartDate,
-      endDate = defaultEndDate,
-      sort,
-    ] = message.text.split(' ');
-
-    return { startDate, endDate, sort };
-  };
-
-  const formatDatetime = momentObject => momentObject.format('dddd, Do MMMM YYYY');
 
   // On receive events
   // Help
@@ -109,18 +131,17 @@ if (isProd) {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
     const textArrays = [
-      '*Format Query:* _[command]_ _[t1]_ _[t2]_ _[sort]_',
-      '  • _[command]_ *(wajib)*: adalah perintah yang diberikan kepada bot.',
-      '     1. *!help*: Memunculkan list _command_ yang ada,',
-      '     2. *!review*: Memunculkan review post-post sejak _[t1]_ hingga _[t2]_,',
-      '     3. *!count*: Menghitung jumlah likes dari post-post sejak _[t1]_ hingga _[t2]_,',
-      '     4. *!mostlikes*: Mencari post-post yang memiliki jumlah likes paling banyak sejak _[t1]_ hingga _[t2]_.',
-      '  • _[t1]_ *(opsional)*:, waktu awal dengan format _DD-MM-YYYY_. *Default*: hari Senin pada minggu ini.',
-      '  • _[t2]_ *(opsional)*:, waktu akhir dengan format _DD-MM-YYYY_. *Default*: hari Minggu pada minggu ini.',
-      '  • _[sort]_ *(opsional)*:, mengurutkan hasil query berdasarkan atribut dengan format _[field]-[order]_. *Default*: unsorted.',
-      '     1. *[field]*: pilihan field yang dapat diurutkan diantaranya *time*, *likes*, *comments*, *tags*,',
-      '     2. *[order]*: pilihan order, yaitu *asc* (kecil ke besar) dan *desc* (besar ke kecil).\n',
-      '*Contoh Query:* !review 07-06-2017 15-06-2017 sort:likes-asc',
+      'Ada dua tipe perintah, yaitu perintah administratif dan perintah query Instagram.',
+      '\t*1. Perintah administratif*',
+      '\t\t• `!promote`: Memberikan akses admin kepada seorang user',
+      '\t\t• `!demote`: Mencabut akses admin dari seorang user',
+      '\t\t• `!help`: Memberikan daftar perintah-perintah yang dapat diinput oleh admin',
+      '\t*2. Perintah query Instagram*',
+      '\t\t• `!review`: Melakukan rekapitulasi post-post dari kurun waktu tertentu',
+      '\t\t• `!mostlikes`: Mencari post-post dengan jumlah likes terbanyak dari kurun waktu tertentu',
+      '\t\t• `!count`: Menghitung jumlah post dari kurun waktu tertentu',
+      '\t\t• `!followers`: Melakukan rekapitulasi jumlah followers per harinya dari kurun waktu tertentu',
+      'Untuk mengetahui detil perintah, ketik perintah tersebut diikuti dengan *--help*. Contoh: `!promote --help`',
     ];
     const text = textArrays.join('\n');
 
@@ -128,170 +149,170 @@ if (isProd) {
   });
 
   // Week review
-  botController.hears(['!review'], [ambient], (bot, message) => {
-    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+  // botController.hears(['!review'], [ambient], (bot, message) => {
+  //   LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-    const params = setParamsFromMessage(message);
+  //   const params = setParamsFromMessage(message);
 
-    if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
-      // If the dates are valid or if review is not defined; it is current week
-      const callback = (err, posts, momentProps) => {
-        if (!err) {
-          const {
-            startDateMoment: start,
-            endDateMoment: end,
-          } = momentProps;
-          const length = posts.length;
-          let botMsg = '';
+  //   if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
+  //     // If the dates are valid or if review is not defined; it is current week
+  //     const callback = (err, posts, momentProps) => {
+  //       if (!err) {
+  //         const {
+  //           startDateMoment: start,
+  //           endDateMoment: end,
+  //         } = momentProps;
+  //         const length = posts.length;
+  //         let botMsg = '';
 
-          if (length) {
-            botMsg = `Review dari ${formatDatetime(start)} hingga ${formatDatetime(end)}:\n`;
+  //         if (length) {
+  //           botMsg = `Review dari ${formatDatetime(start)} hingga ${formatDatetime(end)}:\n`;
 
-            posts.forEach((post, i) => {
-              const {
-                link,
-                created_time: date,
-                likes,
-                caption,
-              } = post;
-              const createdAt = formatDatetime(moment.unix(date));
+  //           posts.forEach((post, i) => {
+  //             const {
+  //               link,
+  //               created_time: date,
+  //               likes,
+  //               caption,
+  //             } = post;
+  //             const createdAt = formatDatetime(moment.unix(date));
 
-              // Manually concat for each post
-              botMsg += `${i + 1}. ${link} (${createdAt}) - ${likes.count} likes\n` +
-                      `${caption.text}`;
+  //             // Manually concat for each post
+  //             botMsg += `${i + 1}. ${link} (${createdAt}) - ${likes.count} likes\n` +
+  //                     `${caption.text}`;
 
-              // Add newline if it is not the last element
-              botMsg += (i + 1 < length) ? '\n' : '';
-            });
-          } else {
-            botMsg = `Tidak ada post dari ${formatDatetime(start)} hingga ${formatDatetime(end)}`;
-          }
+  //             // Add newline if it is not the last element
+  //             botMsg += (i + 1 < length) ? '\n' : '';
+  //           });
+  //         } else {
+  //           botMsg = `Tidak ada post dari ${formatDatetime(start)} hingga ${formatDatetime(end)}`;
+  //         }
 
-          bot.reply(message, botMsg);
-        }
-      };
+  //         bot.reply(message, botMsg);
+  //       }
+  //     };
 
-      const query = {
-        likes: 1,
-        created_time: 1,
-        'caption.text': 1,
-        link: 1,
-      };
+  //     const query = {
+  //       likes: 1,
+  //       created_time: 1,
+  //       'caption.text': 1,
+  //       link: 1,
+  //     };
 
-      QueryUtil.getMediasByTimerange(app.locals.mongoDriver.db, params, query, callback);
-    } else {
-      bot.reply(message, 'Tanggal input tidak valid!');
-    }
-  });
+  //     QueryUtil.getMediasByTimerange(app.locals.mongoDriver.db, params, query, callback);
+  //   } else {
+  //     bot.reply(message, 'Tanggal input tidak valid!');
+  //   }
+  // });
 
   // Get total likes of posts in a timerange
-  botController.hears(['!count'], [ambient], (bot, message) => {
-    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+  // botController.hears(['!count'], [ambient], (bot, message) => {
+  //   LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-    const params = setParamsFromMessage(message);
+  //   const params = setParamsFromMessage(message);
 
-    if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
-      const callback = (json) => {
-        if (json.success) {
-          const {
-            startDate: start,
-            endDate: end,
-            totalLikes,
-          } = json.data;
+  //   if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
+  //     const callback = (json) => {
+  //       if (json.success) {
+  //         const {
+  //           startDate: start,
+  //           endDate: end,
+  //           totalLikes,
+  //         } = json.data;
 
-          bot.reply(
-            message,
-            `Total post likes count dari ${start} hingga ${end} ada ${totalLikes}.`
-          );
-        }
-      };
+  //         bot.reply(
+  //           message,
+  //           `Total post likes count dari ${start} hingga ${end} ada ${totalLikes}.`
+  //         );
+  //       }
+  //     };
 
-      QueryUtil.getTotalLikesInPeriod(app.locals.mongoDriver.db, params, callback);
-    } else {
-      bot.reply(message, 'Tanggal input tidak valid!');
-    }
-  });
+  //     QueryUtil.getTotalLikesInPeriod(app.locals.mongoDriver.db, params, callback);
+  //   } else {
+  //     bot.reply(message, 'Tanggal input tidak valid!');
+  //   }
+  // });
+
+  // // Get post(s) with the most likes in a timerange
+  // botController.hears(['!mostlikes'], [ambient], (bot, message) => {
+  //   LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+
+  //   const params = setParamsFromMessage(message);
+
+  //   if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
+  //     const callback = (json) => {
+  //       if (json.success) {
+  //         const {
+  //           startDate: start,
+  //           endDate: end,
+  //           posts,
+  //         } = json.data;
+
+  //         const length = posts.length;
+  //         let botMsg = '';
+
+  //         if (length) {
+  //           posts.forEach((post, i) => {
+  //             const { link, date, likes, text } = post;
+  //             // Manually concat for each post
+  //             botMsg += `${i + 1}. ${link} (${date}) - ${likes} likes\n` +
+  //                     `${text}`;
+
+  //             // Add newline if it is not the last element
+  //             botMsg += (i + 1 < length) ? '\n' : '';
+  //           });
+  //         } else {
+  //           botMsg = `Tidak ada post dari ${start} hingga ${end}`;
+  //         }
+
+  //         bot.reply(message, botMsg);
+  //       }
+  //     };
+
+  //     QueryUtil.getMostLikedPosts(app.locals.mongoDriver.db, params, callback);
+  //   } else {
+  //     bot.reply(message, 'Tanggal input tidak valid!');
+  //   }
+  // });
 
   // Get post(s) with the most likes in a timerange
-  botController.hears(['!mostlikes'], [ambient], (bot, message) => {
-    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+  // botController.hears(['!followers'], [ambient], (bot, message) => {
+  //   LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-    const params = setParamsFromMessage(message);
+  //   const params = setParamsFromMessage(message);
 
-    if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
-      const callback = (json) => {
-        if (json.success) {
-          const {
-            startDate: start,
-            endDate: end,
-            posts,
-          } = json.data;
+  //   if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
+  //     const callback = (json) => {
+  //       if (json.success) {
+  //         const data = json.data;
+  //         const length = data.length;
+  //         let botMsg = '';
 
-          const length = posts.length;
-          let botMsg = '';
+  //         if (length) {
+  //           const start = formatDatetime(moment.unix(data[0].time));
+  //           const end = formatDatetime(moment.unix(data[length - 1].time));
 
-          if (length) {
-            posts.forEach((post, i) => {
-              const { link, date, likes, text } = post;
-              // Manually concat for each post
-              botMsg += `${i + 1}. ${link} (${date}) - ${likes} likes\n` +
-                      `${text}`;
+  //           botMsg = `Jumlah followers dari *${start}* hingga *${end}*:\n`;
 
-              // Add newline if it is not the last element
-              botMsg += (i + 1 < length) ? '\n' : '';
-            });
-          } else {
-            botMsg = `Tidak ada post dari ${start} hingga ${end}`;
-          }
+  //           data.forEach((followersDay, i) => {
+  //             const { time, followers_count: followersCount } = followersDay;
+  //             const timeFormat = formatDatetime(moment.unix(time));
 
-          bot.reply(message, botMsg);
-        }
-      };
+  //             botMsg += `${i + 1}. *${timeFormat}*: *${followersCount}* akun.\n`;
+  //           });
+  //         } else {
+  //           botMsg = 'Query tidak dapat menemukan data yang diminta. Silahkan coba lagi.';
+  //         }
 
-      QueryUtil.getMostLikedPosts(app.locals.mongoDriver.db, params, callback);
-    } else {
-      bot.reply(message, 'Tanggal input tidak valid!');
-    }
-  });
+  //         bot.reply(message, botMsg);
+  //       }
+  //     };
 
-  // Get post(s) with the most likes in a timerange
-  botController.hears(['!followers'], [ambient], (bot, message) => {
-    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
-
-    const params = setParamsFromMessage(message);
-
-    if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
-      const callback = (json) => {
-        if (json.success) {
-          const data = json.data;
-          const length = data.length;
-          let botMsg = '';
-
-          if (length) {
-            const start = formatDatetime(moment.unix(data[0].time));
-            const end = formatDatetime(moment.unix(data[length - 1].time));
-
-            botMsg = `Jumlah followers dari *${start}* hingga *${end}*:\n`;
-
-            data.forEach((followersDay, i) => {
-              const { time, followers_count: followersCount } = followersDay;
-              const timeFormat = formatDatetime(moment.unix(time));
-
-              botMsg += `${i + 1}. *${timeFormat}*: *${followersCount}* akun.\n`;
-            });
-          } else {
-            botMsg = 'Query tidak dapat menemukan data yang diminta. Silahkan coba lagi.';
-          }
-
-          bot.reply(message, botMsg);
-        }
-      };
-
-      QueryUtil.getFollowersCountSince(app.locals.mongoDriver.db, params, callback);
-    } else {
-      bot.reply(message, 'Tanggal input tidak valid!');
-    }
-  });
+  //     QueryUtil.getFollowersCountSince(app.locals.mongoDriver.db, params, callback);
+  //   } else {
+  //     bot.reply(message, 'Tanggal input tidak valid!');
+  //   }
+  // });
 } else {
   // Local/development mode
   LogUtil.winston.log('info', 'No production environment is detected. Slackbot is not running.');

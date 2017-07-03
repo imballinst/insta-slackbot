@@ -19,11 +19,11 @@ Command     | Description                 |
 
 #### Query Commands Arguments
 
-Argument     | Shorthand     | Default          | Description                           |
------------- | ------------- | ---------------- | ------------------------------------- |
---from       | -f            | Last Monday      | Start date in *DD-MM-YYYY* format     |
---to         | -t            | Next Sunday      | End date in *DD-MM-YYYY* format       |
---sort       | -s            | -                | Sorting order in *field:order* format |
+Argument     | Shorthand     | Default          | Description                           | Related commands    |
+------------ | ------------- | ---------------- | ------------------------------------- | ------------------- |
+--from       | -f            | Last Monday      | Start date in *DD-MM-YYYY* format     | *all commands*      |
+--to         | -t            | Next Sunday      | End date in *DD-MM-YYYY* format       | *all commands*      |
+--sort       | -s            | -                | Sorting order in *field:order* format | *review*            |
 
 Available sorting parameters for sort argument:
 

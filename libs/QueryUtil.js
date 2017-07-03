@@ -5,14 +5,11 @@ moment.locale('id');
 
 // Base sort validator
 function buildSortObject(sortString) {
-  let sortObject = {};
+  const sortObject = {};
 
-  if (sortString && sortString.substr(0, 5) === 'sort:') {
-    // If it is defined and is valid sort query
-    // Cut the 'sort:' substring
-    const sortSubstring = sortString.substr(5);
-
-    const [sortedField, sortOrder] = sortSubstring.split('-');
+  // If defined only
+  if (sortString) {
+    const [sortedField, sortOrder] = sortString.split(':');
 
     // Valid fields and orders
     const isFieldValid =
@@ -25,9 +22,7 @@ function buildSortObject(sortString) {
     // Check if the inputs are valid
     if (isFieldValid && isOrderValid) {
       // Mongo sorting asc is 1 and desc is -1
-      sortObject = {
-        [`${sortedField}`]: sortOrder === 'asc' ? 1 : -1,
-      };
+      sortObject[`${sortedField}`] = sortOrder === 'asc' ? 1 : -1;
     }
   }
 
@@ -95,7 +90,7 @@ function getMostLikedPosts(db, params, callback) {
             created_time: createdAt,
             likes,
             caption,
-          } = curDoc.data;
+          } = curDoc;
 
           if (likes.count >= maxLikes) {
             if (likes.count > maxLikes) {

@@ -1,11 +1,23 @@
-// const moment = require('moment');
-
 // Import modules
+const moment = require('moment');
+
 const LogUtil = require('../libs/LogUtil');
 const BotLibs = require('../libs/Botkit');
 const InstagramDriver = require('../libs/InstagramDriver');
-// const QueryUtil = require('../libs/QueryUtil');
 
+const {
+  getMediasByTimerange,
+  getTotalLikesInPeriod,
+  getMostLikedPosts,
+  getFollowersCountSince,
+} = require('../libs/QueryUtil');
+
+const {
+  processMessage,
+  formatDatetime,
+} = require('../libs/MessageUtil');
+
+// Require app
 const app = require('../app');
 
 // Get node environment
@@ -103,170 +115,162 @@ if (isProd) {
   });
 
   // Week review
-  // botController.hears(['!review'], [ambient], (bot, message) => {
-  //   LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+  botController.hears(['!review'], [ambient], (bot, message) => {
+    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-  //   const params = setParamsFromMessage(message);
+    const executedFunction = (params) => {
+      // If the dates are valid or if review is not defined; it is current week
+      const callback = (err, posts, momentProps) => {
+        if (!err) {
+          const {
+            startDateMoment: start,
+            endDateMoment: end,
+          } = momentProps;
+          const length = posts.length;
+          let botMsg = '';
 
-  //   if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
-  //     // If the dates are valid or if review is not defined; it is current week
-  //     const callback = (err, posts, momentProps) => {
-  //       if (!err) {
-  //         const {
-  //           startDateMoment: start,
-  //           endDateMoment: end,
-  //         } = momentProps;
-  //         const length = posts.length;
-  //         let botMsg = '';
+          if (length) {
+            botMsg = `Review dari ${formatDatetime(start)} hingga ${formatDatetime(end)}:\n`;
 
-  //         if (length) {
-  //           botMsg = `Review dari ${formatDatetime(start)} hingga ${formatDatetime(end)}:\n`;
+            posts.forEach((post, i) => {
+              const {
+                link,
+                created_time: date,
+                likes,
+                caption,
+              } = post;
+              const createdAt = formatDatetime(moment.unix(date));
 
-  //           posts.forEach((post, i) => {
-  //             const {
-  //               link,
-  //               created_time: date,
-  //               likes,
-  //               caption,
-  //             } = post;
-  //             const createdAt = formatDatetime(moment.unix(date));
+              // Manually concat for each post
+              botMsg += `${i + 1}. ${link} (${createdAt}) - ${likes.count} likes\n` +
+                      `${caption.text}`;
 
-  //             // Manually concat for each post
-  //             botMsg += `${i + 1}. ${link} (${createdAt}) - ${likes.count} likes\n` +
-  //                     `${caption.text}`;
+              // Add newline if it is not the last element
+              botMsg += (i + 1 < length) ? '\n' : '';
+            });
+          } else {
+            botMsg = `Tidak ada post dari ${formatDatetime(start)} hingga ${formatDatetime(end)}`;
+          }
 
-  //             // Add newline if it is not the last element
-  //             botMsg += (i + 1 < length) ? '\n' : '';
-  //           });
-  //         } else {
-  //           botMsg = `Tidak ada post dari ${formatDatetime(start)} hingga ${formatDatetime(end)}`;
-  //         }
+          bot.reply(message, botMsg);
+        }
+      };
 
-  //         bot.reply(message, botMsg);
-  //       }
-  //     };
+      const query = {
+        likes: 1,
+        created_time: 1,
+        'caption.text': 1,
+        link: 1,
+      };
 
-  //     const query = {
-  //       likes: 1,
-  //       created_time: 1,
-  //       'caption.text': 1,
-  //       link: 1,
-  //     };
+      getMediasByTimerange(app.locals.mongoDriver.db, params, query, callback);
+    };
 
-  //     QueryUtil.getMediasByTimerange(app.locals.mongoDriver.db, params, query, callback);
-  //   } else {
-  //     bot.reply(message, 'Tanggal input tidak valid!');
-  //   }
-  // });
+    processMessage(bot, message, executedFunction);
+  });
 
   // Get total likes of posts in a timerange
-  // botController.hears(['!count'], [ambient], (bot, message) => {
-  //   LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+  botController.hears(['!count'], [ambient], (bot, message) => {
+    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-  //   const params = setParamsFromMessage(message);
+    const executedFunction = (params) => {
+      const callback = (json) => {
+        if (json.success) {
+          const {
+            startDate: start,
+            endDate: end,
+            totalLikes,
+          } = json.data;
 
-  //   if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
-  //     const callback = (json) => {
-  //       if (json.success) {
-  //         const {
-  //           startDate: start,
-  //           endDate: end,
-  //           totalLikes,
-  //         } = json.data;
+          bot.reply(
+            message,
+            `Total post likes count dari ${start} hingga ${end} ada ${totalLikes}.`
+          );
+        }
+      };
 
-  //         bot.reply(
-  //           message,
-  //           `Total post likes count dari ${start} hingga ${end} ada ${totalLikes}.`
-  //         );
-  //       }
-  //     };
+      getTotalLikesInPeriod(app.locals.mongoDriver.db, params, callback);
+    };
 
-  //     QueryUtil.getTotalLikesInPeriod(app.locals.mongoDriver.db, params, callback);
-  //   } else {
-  //     bot.reply(message, 'Tanggal input tidak valid!');
-  //   }
-  // });
+    processMessage(bot, message, executedFunction);
+  });
 
   // // Get post(s) with the most likes in a timerange
-  // botController.hears(['!mostlikes'], [ambient], (bot, message) => {
-  //   LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+  botController.hears(['!mostlikes'], [ambient], (bot, message) => {
+    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-  //   const params = setParamsFromMessage(message);
+    const executedFunction = (params) => {
+      const callback = (json) => {
+        if (json.success) {
+          const {
+            startDate: start,
+            endDate: end,
+            posts,
+          } = json.data;
 
-  //   if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
-  //     const callback = (json) => {
-  //       if (json.success) {
-  //         const {
-  //           startDate: start,
-  //           endDate: end,
-  //           posts,
-  //         } = json.data;
+          const length = posts.length;
+          let botMsg = '';
 
-  //         const length = posts.length;
-  //         let botMsg = '';
+          if (length) {
+            posts.forEach((post, i) => {
+              const { link, date, likes, text } = post;
+              // Manually concat for each post
+              botMsg += `${i + 1}. ${link} (${date}) - ${likes} likes\n` +
+                      `${text}`;
 
-  //         if (length) {
-  //           posts.forEach((post, i) => {
-  //             const { link, date, likes, text } = post;
-  //             // Manually concat for each post
-  //             botMsg += `${i + 1}. ${link} (${date}) - ${likes} likes\n` +
-  //                     `${text}`;
+              // Add newline if it is not the last element
+              botMsg += (i + 1 < length) ? '\n' : '';
+            });
+          } else {
+            botMsg = `Tidak ada post dari ${start} hingga ${end}`;
+          }
 
-  //             // Add newline if it is not the last element
-  //             botMsg += (i + 1 < length) ? '\n' : '';
-  //           });
-  //         } else {
-  //           botMsg = `Tidak ada post dari ${start} hingga ${end}`;
-  //         }
+          bot.reply(message, botMsg);
+        }
+      };
 
-  //         bot.reply(message, botMsg);
-  //       }
-  //     };
+      getMostLikedPosts(app.locals.mongoDriver.db, params, callback);
+    };
 
-  //     QueryUtil.getMostLikedPosts(app.locals.mongoDriver.db, params, callback);
-  //   } else {
-  //     bot.reply(message, 'Tanggal input tidak valid!');
-  //   }
-  // });
+    processMessage(bot, message, executedFunction);
+  });
 
   // Get post(s) with the most likes in a timerange
-  // botController.hears(['!followers'], [ambient], (bot, message) => {
-  //   LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+  botController.hears(['!followers'], [ambient], (bot, message) => {
+    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-  //   const params = setParamsFromMessage(message);
+    const executedFunction = (params) => {
+      const callback = (json) => {
+        if (json.success) {
+          const data = json.data;
+          const length = data.length;
+          let botMsg = '';
 
-  //   if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
-  //     const callback = (json) => {
-  //       if (json.success) {
-  //         const data = json.data;
-  //         const length = data.length;
-  //         let botMsg = '';
+          if (length) {
+            const start = formatDatetime(moment.unix(data[0].time));
+            const end = formatDatetime(moment.unix(data[length - 1].time));
 
-  //         if (length) {
-  //           const start = formatDatetime(moment.unix(data[0].time));
-  //           const end = formatDatetime(moment.unix(data[length - 1].time));
+            botMsg = `Jumlah followers dari *${start}* hingga *${end}*:\n`;
 
-  //           botMsg = `Jumlah followers dari *${start}* hingga *${end}*:\n`;
+            data.forEach((followersDay, i) => {
+              const { time, followers_count: followersCount } = followersDay;
+              const timeFormat = formatDatetime(moment.unix(time));
 
-  //           data.forEach((followersDay, i) => {
-  //             const { time, followers_count: followersCount } = followersDay;
-  //             const timeFormat = formatDatetime(moment.unix(time));
+              botMsg += `${i + 1}. *${timeFormat}*: *${followersCount}* akun.\n`;
+            });
+          } else {
+            botMsg = 'Query tidak dapat menemukan data yang diminta. Silahkan coba lagi.';
+          }
 
-  //             botMsg += `${i + 1}. *${timeFormat}*: *${followersCount}* akun.\n`;
-  //           });
-  //         } else {
-  //           botMsg = 'Query tidak dapat menemukan data yang diminta. Silahkan coba lagi.';
-  //         }
+          bot.reply(message, botMsg);
+        }
+      };
 
-  //         bot.reply(message, botMsg);
-  //       }
-  //     };
+      getFollowersCountSince(app.locals.mongoDriver.db, params, callback);
+    };
 
-  //     QueryUtil.getFollowersCountSince(app.locals.mongoDriver.db, params, callback);
-  //   } else {
-  //     bot.reply(message, 'Tanggal input tidak valid!');
-  //   }
-  // });
+    processMessage(bot, message, executedFunction);
+  });
 } else {
   // Local/development mode
   LogUtil.winston.log('info', 'No production environment is detected. Slackbot is not running.');

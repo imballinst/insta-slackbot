@@ -5,8 +5,12 @@ import { parseMessage, setParamsFromMessage } from '../MessageUtil';
 describe('MessageUtil component (libs/MessageUtil)', () => {
   it('should parse message correctly', () => {
     // Messages
-    const message = '!mostlikes --from 27-07-2017 --to 28-07-2017 --sort asc:likes';
-    const message2 = '!mostlikes -f 27-07-2017 -t 28-07-2017 -s asc:likes';
+    const message = {
+      text: '!mostlikes --from 27-07-2017 --to 28-07-2017 --sort likes:asc'
+    };
+    const message2 = {
+      text: '!mostlikes -f 27-07-2017 -t 28-07-2017 -s likes:asc'
+    };
 
     // Parsed messages
     const parsedMessage = parseMessage(message);
@@ -19,7 +23,7 @@ describe('MessageUtil component (libs/MessageUtil)', () => {
       queries: {
         startDate: '27-07-2017',
         endDate: '28-07-2017',
-        sort: 'asc:likes'
+        sort: 'likes:asc'
       },
     };
 
@@ -29,19 +33,19 @@ describe('MessageUtil component (libs/MessageUtil)', () => {
 
   it('should convert parsed message queries to query params', () => {
     // Parsed message
-    const parsedMessage = {
+    const parsedMessageQueries = {
       startDate: '27-07-2017',
       endDate: '28-07-2017',
-      sort: 'asc:likes'
+      sort: 'likes:asc'
     };
 
     // Expected output
     const expected = {
       startDate: '27-07-2017',
       endDate: '28-07-2017',
-      sort: 'asc:likes',
+      sort: 'likes:asc',
     };
 
-    expect(expected).toEqual(setParamsFromMessage(parsedMessage));
+    expect(expected).toEqual(setParamsFromMessage(parsedMessageQueries));
   });
 });

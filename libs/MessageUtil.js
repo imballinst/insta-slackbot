@@ -1,10 +1,8 @@
-import moment from 'moment';
+const moment = require('moment');
 
-// Command and query dictionary
-const commands = [
-  'admins', 'promote', 'demote', 'channels', 'setchannel', 'help',
-  'review', 'mostlikes', 'count', 'followers',
-];
+const commandHelps = {
+  review: 'review help!',
+};
 
 const queries = [
   {
@@ -40,26 +38,20 @@ const formatDatetime = momentObject => momentObject.format('dddd, Do MMMM YYYY')
 
 const parseMessage = (message) => {
   // Variables
-  const [command, ...args] = message.split(' ');
+  const [command, ...args] = message.text.split(' ');
   const commandString = command.replace(/[!]+/g, '');
 
-  const parsedObject = {};
-
-  // Set object properties
-  parsedObject.command = commandString;
+  const parsedObject = { command: commandString };
 
   // Classify message based on its arguments
   const argumentLength = args.length;
 
-  if (argumentLength === 0 || argumentLength % 2 !== 0 || !commands.includes(commandString)) {
-    parsedObject.type = 'invalid';
-  } else if (args.includes('--help')) {
+  if (args.includes('--help')) {
     parsedObject.type = 'help';
-  } else {
+  } else if (argumentLength % 2 === 0) {
     parsedObject.type = 'query';
     parsedObject.queries = {};
 
-    // Think about something that could easily parse based on commands
     const argsLength = args.length;
     let valid = true;
     let i = 0;
@@ -81,6 +73,8 @@ const parseMessage = (message) => {
 
       i += 2;
     }
+  } else {
+    parsedObject.type = 'invalid';
   }
 
   return parsedObject;
@@ -110,9 +104,40 @@ const setParamsFromMessage = (parsedObject) => {
   return { startDate, endDate, sort };
 };
 
-export {
+const processMessage = (bot, message, executedFunction) => {
+  const parsedMessage = parseMessage(message);
+
+  switch (parsedMessage.type) {
+    case 'invalid': {
+      bot.reply(message, 'Perintah tidak valid. Cek kembali masukan perintah Anda!');
+
+      break;
+    }
+    case 'help': {
+      bot.reply(message, commandHelps[parsedMessage.command]);
+
+      break;
+    }
+    case 'query': {
+      const params = setParamsFromMessage(parsedMessage.queries);
+
+      if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
+        executedFunction(params);
+      } else {
+        bot.reply(message, 'Tanggal input tidak valid!');
+      }
+
+      break;
+    }
+    default: break;
+  }
+};
+
+module.exports = {
+  commandHelps,
   isDateValid,
   parseMessage,
   setParamsFromMessage,
+  processMessage,
   formatDatetime,
 };

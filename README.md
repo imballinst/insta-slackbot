@@ -15,6 +15,7 @@ Command     | Description                 |
 !review     | Review all media posts      |
 !count      | Count number of media posts |
 !mostlikes  | Show posts with most likes  |
+!followers  | Show number of followers    |
 
 #### Query Commands Arguments
 

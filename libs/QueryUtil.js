@@ -3,38 +3,11 @@ const moment = require('moment');
 // Set locale
 moment.locale('id');
 
-// Base sort validator
-function buildSortObject(sortString) {
-  const sortObject = {};
-
-  // If defined only
-  if (sortString) {
-    const [sortedField, sortOrder] = sortString.split(':');
-
-    // Valid fields and orders
-    const isFieldValid =
-      sortedField === 'time' ||
-      sortedField === 'likes' ||
-      sortedField === 'comments' ||
-      sortedField === 'tags';
-    const isOrderValid = sortOrder === 'asc' || sortOrder === 'desc';
-
-    // Check if the inputs are valid
-    if (isFieldValid && isOrderValid) {
-      // Mongo sorting asc is 1 and desc is -1
-      sortObject[`${sortedField}`] = sortOrder === 'asc' ? 1 : -1;
-    }
-  }
-
-  return sortObject;
-}
-
 // Base getters
-function getMediasByTimerange(db, params, query, callback) {
+function getMediasByTimerange(db, params, callback) {
   const { startDate, endDate, sort } = params;
   const startDateMoment = moment(startDate, 'DD-MM-YYYY');
   const endDateMoment = moment(endDate, 'DD-MM-YYYY');
-  const sortObject = buildSortObject(sort);
 
   db.collection('postedmedias')
     .find({
@@ -42,14 +15,23 @@ function getMediasByTimerange(db, params, query, callback) {
         $gte: startDateMoment.unix().toString(),
         $lte: endDateMoment.unix().toString(),
       },
-    }, query)
-    .sort(sortObject)
+    })
     .toArray((err, docs) => {
-      // Pass parameters to callback function
-      callback(err, docs, {
-        startDateMoment,
-        endDateMoment,
-      });
+      // Pass object { success, minID, count }
+      const dbResponse = { success: false, data: {} };
+
+      if (!err) {
+        dbResponse.success = true;
+
+        if (docs.length) {
+          dbResponse.data = {
+            minID: docs[0].id,
+            count: docs.length,
+          };
+        }
+      }
+
+      callback(dbResponse);
     });
 }
 
@@ -64,19 +46,21 @@ function getFollowersCount(db, params, callback) {
       $lte: endDateMoment.unix().toString(),
     },
   }).toArray((err, docs) => {
-    // Pass parameters to callback function
-    callback(err, docs);
+    // Pass object { success, minID, count }
+    const dbResponse = { success: false, data: {} };
+
+    if (!err) {
+      dbResponse.success = true;
+      dbResponse.data = {
+        count: docs.count,
+      };
+    }
+
+    callback(dbResponse);
   });
 }
 
-// Modified getters
 function getMostLikedPosts(db, params, callback) {
-  const query = {
-    likes: 1,
-    created_time: 1,
-    'caption.text': 1,
-    link: 1,
-  };
   const buildResponseJSON = (err, docs, momentProps) => {
     if (!err) {
       const { startDateMoment, endDateMoment } = momentProps;
@@ -125,11 +109,10 @@ function getMostLikedPosts(db, params, callback) {
     }
   };
 
-  getMediasByTimerange(db, params, query, buildResponseJSON);
+  getMediasByTimerange(db, params, buildResponseJSON);
 }
 
 function getTotalLikesInPeriod(db, params, callback) {
-  const query = { likes: 1 };
   const buildResponseJSON = (err, docs, momentProps) => {
     if (!err) {
       const { startDateMoment, endDateMoment } = momentProps;
@@ -146,7 +129,7 @@ function getTotalLikesInPeriod(db, params, callback) {
     }
   };
 
-  getMediasByTimerange(db, params, query, buildResponseJSON);
+  getMediasByTimerange(db, params, buildResponseJSON);
 }
 
 function getFollowersCountSince(db, params, callback) {

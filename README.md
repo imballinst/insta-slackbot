@@ -10,12 +10,12 @@ There are two bot command types, media query and administration. Both of them us
 
 #### List of Query Commands
 
-Command     | Description                 |
------------ | --------------------------- |
-!review     | Review all media posts      |
-!count      | Count number of media posts |
-!mostlikes  | Show posts with most likes  |
-!followers  | Show number of followers    |
+Command     | Description                       |
+----------- | --------------------------------- |
+!review     | Review all media posts            |
+!countlikes | Count number of posts likes       |
+!mostlikes  | Show posts with most likes        |
+!followers  | Show number of followers          |
 
 #### Query Commands Arguments
 

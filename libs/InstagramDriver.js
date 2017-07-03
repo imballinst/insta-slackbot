@@ -41,7 +41,7 @@ function getMediaById(mediaID, callback) {
   httpsRequest(options, undefined, callback);
 }
 
-function getMediaByWithMaxAndMinID(minID, maxID, count, callback) {
+function getMedias(minID, maxID, count, callback) {
   // JSON Object of POST data
   const getMediaJSON = {
     access_token: instaAccessToken,
@@ -67,5 +67,5 @@ function getMediaByWithMaxAndMinID(minID, maxID, count, callback) {
 module.exports = {
   getSelfProfile,
   getMediaById,
-  getMediaByWithMaxAndMinID,
+  getMedias,
 };

@@ -5,6 +5,8 @@ const moment = require('moment');
 const MongoDriver = require('../libs/MongoDriver');
 const LogUtil = require('../libs/LogUtil');
 
+const { getMedias } = require('../libs/InstagramDriver');
+
 const isProd = process.env.NODE_ENV === 'production';
 
 function insertMockData(db, callback) {
@@ -19,72 +21,33 @@ function insertMockData(db, callback) {
   for (let i = 30; i >= 0; i -= 1) {
     const time = moment().utcOffset(7).hour(0).minute(0).second(0).subtract(i, 'days').unix();
 
-    mediaArray.push({
-      id: '1516059927444791289_1945373804',
-      user: {
-        id: '1945373804',
-        full_name: 'Try Ajitiono',
-        profile_picture: 'https://scontent.cdninstagram.com/t51.2885-19/s150x150/18646657_706496922868789_3662671655315963904_a.jpg',
-        username: 'imballinst',
-      },
-      images: {
-        thumbnail: {
-          width: 150,
-          height: 150,
-          url: 'https://scontent.cdninstagram.com/t51.2885-15/s150x150/e35/18443697_456877937995004_1901948450816131072_n.jpg',
-        },
-        low_resolution: {
-          width: 320,
-          height: 320,
-          url: 'https://scontent.cdninstagram.com/t51.2885-15/s320x320/e35/18443697_456877937995004_1901948450816131072_n.jpg',
-        },
-        standard_resolution: {
-          width: 480,
-          height: 480,
-          url: 'https://scontent.cdninstagram.com/t51.2885-15/e35/18443697_456877937995004_1901948450816131072_n.jpg',
-        },
-      },
-      created_time: time.toString(),
-      caption: {
-        id: '17855760718189585',
-        text: 'Got so bored of playing games, decided to do silly things instead.\n\n#instagramAPI #testapi #sorryforspam',
-        created_time: time.toString(),
-        from: {
-          id: '1945373804',
-          full_name: 'Try Ajitiono',
-          profile_picture: 'https://scontent.cdninstagram.com/t51.2885-19/s150x150/18646657_706496922868789_3662671655315963904_a.jpg',
-          username: 'imballinst',
-        },
-      },
-      user_has_liked: false,
-      likes: {
-        count: getRandomNumber(12, 15),
-      },
-      tags: [
-        'testapi',
-        'sorryforspam',
-        'instagramapi',
-      ],
-      filter: 'Normal',
-      comments: {
-        count: getRandomNumber(1, 15),
-      },
-      type: 'image',
-      link: 'https://www.instagram.com/p/BUKIHi5jR_5/',
-      location: null,
-      attribution: null,
-      users_in_photo: [
-
-      ],
-      meta: {
-        code: 200,
-      }
-    });
-
     // Followers
     followerArray.push({ time: time.toString(), followers_count: followersCount });
     followersCount += getRandomNumber(1, 10);
   }
+
+  mediaArray.push(
+    {
+      "id":"1525240244365906456_1945373804",
+      "created_time":"1496042827",
+    },
+    {
+      "id":"1516059927444791289_1945373804",
+      "created_time":"1494948448",
+    },
+    {
+      "id":"1007765561032799472_1945373804",
+      "created_time":"1434355038",
+    },
+    {
+      "id":"1007748652140820479_1945373804",
+      "created_time":"1434353022",
+    },
+    {
+      "id":"1007719002664564269_1945373804",
+      "created_time":"1434349488",
+    }
+  );
 
   // Insert pushed mediaArrays into postedmedias collection
   db.collection('postedmedias').insertMany(mediaArray, (err) => {

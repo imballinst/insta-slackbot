@@ -1,5 +1,8 @@
 const moment = require('moment');
 
+const { getMedias } = require('./InstagramDriver');
+const { getMediasByTimerange } = require('./QueryUtil');
+
 const commandHelps = {
   review: 'review help!',
 };
@@ -104,7 +107,7 @@ const setParamsFromMessage = (parsedObject) => {
   return { startDate, endDate, sort };
 };
 
-const processMessage = (bot, message, executedFunction) => {
+const processMessage = (bot, db, message, onSuccessMeta) => {
   const parsedMessage = parseMessage(message);
 
   switch (parsedMessage.type) {
@@ -122,7 +125,33 @@ const processMessage = (bot, message, executedFunction) => {
       const params = setParamsFromMessage(parsedMessage.queries);
 
       if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
-        executedFunction(params);
+        // db callback
+        const dbCallback = (dbResponse) => {
+          const { success, data } = dbResponse;
+          const {
+            minID = undefined,
+            count = 0,
+          } = data;
+
+          if (success) {
+            // http callback
+            const httpCallback = (response) => {
+              const { data, meta } = JSON.parse(response);
+
+              if (meta.code === 200) {
+                // Success fetching from API
+                onSuccessMeta(data, params);
+              } else if (meta.code === 429) {
+                // Rate limit reached
+                bot.reply(message, 'Limit query tercapai. Silahkan tunggu beberapa saat lagi.');
+              }
+            };
+
+            getMedias(minID, undefined, count, httpCallback);
+          }
+        };
+
+        getMediasByTimerange(db, params, dbCallback);
       } else {
         bot.reply(message, 'Tanggal input tidak valid!');
       }

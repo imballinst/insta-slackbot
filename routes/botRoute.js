@@ -69,11 +69,18 @@ if (isProd) {
 
       if (meta.code === 200) {
         // If media exists
-        app.locals.mongoDriver.db.collection('postedmedias').insertOne(data);
+        const { id, created_at: createdAt, link, caption } = data;
+
+        app.locals.mongoDriver.db.collection('postedmedias').insertOne({
+          id,
+          created_at: createdAt,
+          link,
+        });
+
         res.send();
 
         botInstance.say({
-          text: `Ada post baru nih di Instagram! ${data.link}\n\n"${data.caption.text}"`,
+          text: `Ada post baru nih di Instagram! ${link}\n\n"${caption.text}"`,
           channel: slackChannelID,
         });
       } else {

@@ -10,7 +10,8 @@ function replaceAccessToken(token) {
     const arrayOfEnvVariables = data.split('\n');
 
     // Access token is line #6, therefore it's array #5
-    const newTokenValue = `${arrayOfEnvVariables[5].substr(0, 12)}=${token}`;
+    const indexOfEqualSymbol = arrayOfEnvVariables[5].indexOf('=');
+    const newTokenValue = `${arrayOfEnvVariables[5].substr(0, indexOfEqualSymbol)}=${token}`;
     arrayOfEnvVariables[5] = newTokenValue;
 
     // Convert array to string

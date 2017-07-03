@@ -18,8 +18,9 @@
     "release:patch": "changelog -p && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version patch && git push origin && git push origin --tags"
   },
   "jest": {
-    "roots": [
-      "resources/tests"
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(js)$",
+    "moduleFileExtensions": [
+      "js"
     ]
   },
   "precommit": "test",
@@ -52,6 +53,11 @@
     "winston": "^2.3.1"
   },
   "devDependencies": {
+    "babel": "^6.23.0",
+    "babel-eslint": "^7.2.3",
+    "babel-jest": "^20.0.3",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "^14.1.0",
     "eslint-plugin-import": "^2.2.0",

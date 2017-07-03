@@ -73,55 +73,6 @@ if (isProd) {
     getMediaById(mediaID, callback);
   });
 
-  // Helpers functions
-  // const isDateValid = string => moment(string, 'DD-MM-YYYY').isValid();
-
-  // const parseMessage = (message) => {
-  //   // Variables
-  //   const [command, ...args] = message.split(' ');
-  //   const returnedObject = {};
-
-  //   // Set object properties
-  //   returnedObject.command = command;
-
-  //   // Classify message based on its arguments
-  //   if (args.length === 0) {
-  //     returnedObject.type = 'invalid';
-  //   } else if (args.includes('--help')) {
-  //     returnedObject.type = 'help';
-  //   } else {
-  //     returnedObject.type = 'query';
-
-  //     // Think about something that could easily parse based on commands
-  //   }
-
-  //   return returnedObject;
-  // };
-
-  // const setParamsFromMessage = (message) => {
-  //   // Set default if not defined to start of and end of week
-  //   const defaultStartDate = moment()
-  //     .hour(0)
-  //     .minute(0)
-  //     .second(0)
-  //     .startOf('week');
-  //   const defaultEndDate = moment()
-  //     .hour(0)
-  //     .minute(0)
-  //     .second(0)
-  //     .endOf('week');
-
-  //   const [,
-  //     startDate = defaultStartDate,
-  //     endDate = defaultEndDate,
-  //     sort,
-  //   ] = message.text.split(' ');
-
-  //   return { startDate, endDate, sort };
-  // };
-
-  // const formatDatetime = momentObject => momentObject.format('dddd, Do MMMM YYYY');
-
   // List events
   const ambient = 'ambient';
 
@@ -133,8 +84,11 @@ if (isProd) {
     const textArrays = [
       'Ada dua tipe perintah, yaitu perintah administratif dan perintah query Instagram.',
       '\t*1. Perintah administratif*',
+      '\t\t• `!admins`: Menampilkan daftar admin yang berhak memberikan perintah',
       '\t\t• `!promote`: Memberikan akses admin kepada seorang user',
       '\t\t• `!demote`: Mencabut akses admin dari seorang user',
+      '\t\t• `!channels`: Menampilkan daftar channel tempat output dari post-post Instagram',
+      '\t\t• `!setchannel`: Menentukan channel tempat output dari post-post Instagram',
       '\t\t• `!help`: Memberikan daftar perintah-perintah yang dapat diinput oleh admin',
       '\t*2. Perintah query Instagram*',
       '\t\t• `!review`: Melakukan rekapitulasi post-post dari kurun waktu tertentu',

@@ -84,12 +84,12 @@ if (isProd) {
     const textArrays = [
       'Ada dua tipe perintah, yaitu perintah administratif dan perintah query Instagram.',
       '\t*1. Perintah administratif*',
+      '\t\t• `!help`: Memberikan daftar perintah-perintah yang dapat diinput oleh admin',
       '\t\t• `!admins`: Menampilkan daftar admin yang berhak memberikan perintah',
       '\t\t• `!promote`: Memberikan akses admin kepada seorang user',
       '\t\t• `!demote`: Mencabut akses admin dari seorang user',
       '\t\t• `!channels`: Menampilkan daftar channel tempat output dari post-post Instagram',
       '\t\t• `!setchannel`: Menentukan channel tempat output dari post-post Instagram',
-      '\t\t• `!help`: Memberikan daftar perintah-perintah yang dapat diinput oleh admin',
       '\t*2. Perintah query Instagram*',
       '\t\t• `!review`: Melakukan rekapitulasi post-post dari kurun waktu tertentu',
       '\t\t• `!mostlikes`: Mencari post-post dengan jumlah likes terbanyak dari kurun waktu tertentu',

@@ -12,7 +12,6 @@ There are two bot command types, media query and administration. Both of them us
 
 Command     | Description                 |
 ----------- | --------------------------- |
-!help       | Show list of commands       |
 !review     | Review all media posts      |
 !count      | Count number of media posts |
 !mostlikes  | Show posts with most likes  |
@@ -39,13 +38,18 @@ Available sorting parameters for sort argument:
 
 #### List of Administration Commands
 
-Command     | Description                      |
------------ | -------------------------------- |
-!promote    | Grant given user admin privilege |
-!demote     | Remove privilege from given user |
+Command     | Description                             |
+----------- | --------------------------------------- |
+!help       | Show list of commands                   |
+!admins     | Show list of admins                     |
+!promote    | Grant given user admin privilege        |
+!demote     | Remove privilege from given user        |
+!channels   | Show output channels from posted medias |
+!setchannel | Set output channel from posted medias   |
 
 #### Administration Commands Arguments
 
-Argument     | Shorthand     | Default          | Description    |
------------- | ------------- | ---------------- | -------------- |
---user       | -u            | -                | Slack username |
+Argument     | Shorthand     | Default          | Description     | Related commands    |
+------------ | ------------- | ---------------- | --------------- | ------------------- |
+--user       | -u            | -                | Slack username  | *promote*, *demote* |
+--channel    | -c            | -                | Channel name/ID | *setchannel*        |

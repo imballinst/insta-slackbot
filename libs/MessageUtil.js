@@ -27,10 +27,16 @@ const queries = [
     prop: 'user',
     shorthand: 'u',
   },
+  {
+    param: 'channel',
+    prop: 'channel',
+    shorthand: 'c',
+  },
 ];
 
 // Helper functions
 const isDateValid = string => moment(string, 'DD-MM-YYYY').isValid();
+const formatDatetime = momentObject => momentObject.format('dddd, Do MMMM YYYY');
 
 const parseMessage = (message) => {
   // Variables
@@ -86,12 +92,14 @@ const setParamsFromMessage = (parsedObject) => {
     .hour(0)
     .minute(0)
     .second(0)
-    .startOf('week');
+    .startOf('week')
+    .format('DD-MM-YYYY');
   const defaultEndDate = moment()
     .hour(0)
     .minute(0)
     .second(0)
-    .endOf('week');
+    .endOf('week')
+    .format('DD-MM-YYYY');
 
   const {
     startDate = defaultStartDate,
@@ -101,8 +109,6 @@ const setParamsFromMessage = (parsedObject) => {
 
   return { startDate, endDate, sort };
 };
-
-const formatDatetime = momentObject => momentObject.format('dddd, Do MMMM YYYY');
 
 export {
   isDateValid,

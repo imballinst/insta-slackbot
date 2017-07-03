@@ -30,15 +30,15 @@ describe('MessageUtil component (libs/MessageUtil)', () => {
   it('should convert parsed message queries to query params', () => {
     // Parsed message
     const parsedMessage = {
-      startDate: moment('27-07-2017', 'DD-MM-YYYY'),
-      endDate: moment('28-07-2017', 'DD-MM-YYYY'),
+      startDate: '27-07-2017',
+      endDate: '28-07-2017',
       sort: 'asc:likes'
     };
 
     // Expected output
     const expected = {
-      startDate: moment('27-07-2017', 'DD-MM-YYYY'),
-      endDate: moment('28-07-2017', 'DD-MM-YYYY'),
+      startDate: '27-07-2017',
+      endDate: '28-07-2017',
       sort: 'asc:likes',
     };
 

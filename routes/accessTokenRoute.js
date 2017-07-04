@@ -25,6 +25,7 @@ app.post('/authorize', (req, res) => {
     // JSON Object of POST data
     const getCodeJSON = {
       client_id: clientID,
+      scope: 'basic follower_list',
       redirect_uri: `${serverUrl}/get-response-code`,
       response_type: 'code',
     };

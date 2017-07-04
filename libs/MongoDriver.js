@@ -2,8 +2,11 @@
 const LogUtil = require('./LogUtil');
 const MongoClient = require('mongodb').MongoClient;
 
+const mongoURL = process.env.MONGO_URL;
+const mongoDatabase = process.env.MONGO_DATABASE;
+
 // Connection URL
-const url = 'mongodb://localhost:27017/instagram_db';
+const url = `${mongoURL}/${mongoDatabase}`;
 
 const MongoDriver = {
   db: null,

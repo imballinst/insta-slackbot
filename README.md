@@ -2,7 +2,7 @@
 
 [Instagram API](https://www.instagram.com/developer/endpoints/) and [Slack app](https://efishery.slack.com/apps) with [Botkit](https://github.com/howdyai/botkit). Built for quick marketing queries and announcing media posts with [NodeJS](http://nodejs.org/) and [MongoDB](https://www.mongodb.com/).
 
-## Bot commands (Work In Progress)
+## Bot commands
 
 There are two bot command types, media query and administration. Both of them use the database to do their job correctly. Media query commands are related to Instagram media posts, while administration commands are related to user privileges.
 
@@ -10,12 +10,12 @@ There are two bot command types, media query and administration. Both of them us
 
 #### List of Query Commands
 
-Command     | Description                       |
------------ | --------------------------------- |
-!review     | Review all media posts            |
-!countlikes | Count number of posts likes       |
-!mostlikes  | Show posts with most likes        |
-!followers  | Show number of followers          |
+Command     | Description                       | Status    |
+----------- | --------------------------------- | --------- |
+!review     | Review all media posts            | Available |
+!countlikes | Count number of posts likes       | Available |
+!mostlikes  | Show posts with most likes        | Available |
+!followers  | Show number of followers          | N/A       |
 
 #### Query Commands Arguments
 
@@ -39,14 +39,14 @@ Available sorting parameters for sort argument:
 
 #### List of Administration Commands
 
-Command     | Description                             |
------------ | --------------------------------------- |
-!help       | Show list of commands                   |
-!admins     | Show list of admins                     |
-!promote    | Grant given user admin privilege        |
-!demote     | Remove privilege from given user        |
-!channels   | Show output channels from posted medias |
-!setchannel | Set output channel from posted medias   |
+Command     | Description                             | Status    |
+----------- | --------------------------------------- | --------- |
+!help       | Show list of commands                   | Available |
+!admins     | Show list of admins                     | Available |
+!promote    | Grant given user admin privilege        | Available |
+!demote     | Remove privilege from given user        | Available |
+!channels   | Show output channels from posted medias | Available |
+!setchannel | Set output channel from posted medias   | Available |
 
 #### Administration Commands Arguments
 

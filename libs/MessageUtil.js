@@ -1,7 +1,7 @@
 const moment = require('moment');
 
 const { getMedias } = require('./InstagramDriver');
-const { getMediasByTimerange } = require('./QueryUtil');
+const { getMediasByTimerange } = require('./MongoQueries');
 
 const commandHelps = {
   review: 'review help!',
@@ -136,11 +136,11 @@ const processMessage = (bot, db, message, onSuccessMeta) => {
           if (success) {
             // http callback
             const httpCallback = (response) => {
-              const { data, meta } = JSON.parse(response);
+              const { data: posts, meta } = JSON.parse(response);
 
               if (meta.code === 200) {
                 // Success fetching from API
-                onSuccessMeta(data, params);
+                onSuccessMeta(posts, params);
               } else if (meta.code === 429) {
                 // Rate limit reached
                 bot.reply(message, 'Limit query tercapai. Silahkan tunggu beberapa saat lagi.');

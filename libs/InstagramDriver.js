@@ -43,7 +43,7 @@ function getMediaById(mediaID, callback) {
 
 function getMedias(minID, maxID, count, callback) {
   // JSON Object of POST data
-  const getMediaJSON = {
+  const getMediasJSON = {
     access_token: instaAccessToken,
     // includes media with minID
     min_id: minID,
@@ -53,10 +53,28 @@ function getMedias(minID, maxID, count, callback) {
   };
 
   // Stringify JSON and set header options
-  const getMediaString = querystring.stringify(getMediaJSON);
+  const getMediasString = querystring.stringify(getMediasJSON);
   const options = {
     hostname: 'api.instagram.com',
-    path: `/v1/users/self/media/recent/?${getMediaString}`,
+    path: `/v1/users/self/media/recent/?${getMediasString}`,
+    method: 'GET',
+  };
+
+  // Send request
+  httpsRequest(options, undefined, callback);
+}
+
+function getFollowers(callback) {
+  // JSON Object of POST data
+  const getFollowersJSON = {
+    access_token: instaAccessToken,
+  };
+
+  // Stringify JSON and set header options
+  const getFollowersString = querystring.stringify(getFollowersJSON);
+  const options = {
+    hostname: 'api.instagram.com',
+    path: `/v1/users/self/followed-by/?${getFollowersString}`,
     method: 'GET',
   };
 
@@ -68,4 +86,5 @@ module.exports = {
   getSelfProfile,
   getMediaById,
   getMedias,
+  getFollowers,
 };

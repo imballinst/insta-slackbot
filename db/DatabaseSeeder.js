@@ -124,9 +124,17 @@ function clearCollection(db, callback) {
           LogUtil.winston.log('info', 'Successfully truncated "admins" collection!');
         }
 
-        if (typeof callback === 'function') {
-          callback(db);
-        }
+        db.collection('channels').deleteMany({}, (err, r) => {
+          if (err) {
+            LogUtil.winston.log('error', 'Failed to truncate "channels" collection!');
+          } else {
+            LogUtil.winston.log('info', 'Successfully truncated "channels" collection!');
+          }
+
+          if (typeof callback === 'function') {
+            callback(db);
+          }
+        });
       });
     });
   });

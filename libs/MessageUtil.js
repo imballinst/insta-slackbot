@@ -321,7 +321,8 @@ const processMessage = (bot, db, message, onSuccess) => {
                 break;
               }
               case 'setbroadcast': {
-                const { channel: channelName, broadcast } = queries;
+                const broadcast = queries.broadcast;
+                let channelName = queries.channel;
 
                 if (channelName) {
                   const broadcastStatus = broadcast === 'off' ? '0' : '1';
@@ -330,10 +331,18 @@ const processMessage = (bot, db, message, onSuccess) => {
                     const listChannelsResponse = JSON.parse(response);
 
                     if (listChannelsResponse.ok) {
-                      const channels = listChannelsResponse.channels;
-                      const channelObject = channels.find(channel => channelName === channel.name);
+                      // If API doesn't return error
+                      let channelID = '';
 
-                      if (channelObject) {
+                      if (channelName === '~here') {
+                        channelID = message.channel;
+                        channelName = 'ini';
+                      } else {
+                        const channels = listChannelsResponse.channels;
+                        channelID = channels.find(channel => channelName === channel.name).id;
+                      }
+
+                      if (channelID !== '') {
                         const dbCallback = (dbResponse) => {
                           // If successfully fetch from MongoDB
                           const success = dbResponse.success;
@@ -348,11 +357,12 @@ const processMessage = (bot, db, message, onSuccess) => {
                           }
                         };
 
-                        setBroadcastChannel(db, channelObject.id, broadcastStatus, dbCallback);
+                        setBroadcastChannel(db, channelID, broadcastStatus, dbCallback);
                       } else {
                         bot.reply(message, 'Channel tidak ditemukan. Silahkan coba lagi.');
                       }
                     } else {
+                      // If API returns an error
                       bot.reply(message, response.error);
                     }
                   };

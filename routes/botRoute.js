@@ -15,7 +15,7 @@ const { processMessage, formatDatetime } = require('../libs/MessageUtil');
 const app = require('../app');
 
 // Get node environment
-const slackChannelID = process.env.SLACK_CHANNEL;
+// const slackChannelID = process.env.SLACK_CHANNEL;
 const isProd = process.env.NODE_ENV === 'production';
 
 if (isProd) {

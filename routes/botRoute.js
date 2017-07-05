@@ -5,7 +5,10 @@ const LogUtil = require('../libs/LogUtil');
 const BotLibs = require('../libs/Botkit');
 
 const { getMediaById } = require('../libs/InstagramDriver');
-// const { getFollowersCount } = require('../libs/MongoQueries');
+const {
+  // getFollowersCount,
+  getChannels,
+} = require('../libs/MongoQueries');
 const { processMessage, formatDatetime } = require('../libs/MessageUtil');
 
 // Require app
@@ -66,10 +69,16 @@ if (isProd) {
 
         res.send();
 
-        botInstance.say({
-          text: `Ada post baru nih di Instagram! ${link}\n\n"${caption.text}"`,
-          channel: slackChannelID,
-        });
+        const getChannelsCallback = (dbResponse) => {
+          dbResponse.data.forEach((channel) => {
+            botInstance.say({
+              text: `Ada post baru nih di Instagram! ${link}\n\n"${caption.text}"`,
+              channel: channel.channel_id,
+            });
+          });
+        };
+
+        getChannels(app.locals.mongoDriver.db, getChannelsCallback);
       } else {
         // If media doesn't exist
         LogUtil.winston.log('error', 'Media not found!');
@@ -360,7 +369,7 @@ if (isProd) {
     const onSuccess = (success, username) => {
       const botMsg = success ?
         `Sukses menurunkan ${username} dari jabatan admin!` :
-        `Gagal menurunkan ${username} dari jabatan admin`;
+        `Gagal menurunkan ${username} dari jabatan admin.`;
 
       bot.reply(message, botMsg);
     };
@@ -368,7 +377,50 @@ if (isProd) {
     processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
   });
 
-  // Channel, set channel
+  // Get channels
+  botController.hears(['!channels'], [ambient], (bot, message) => {
+    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+
+    const onSuccess = (channels) => {
+      const length = channels.length;
+      let botMsg = '';
+
+      if (length) {
+        botMsg = 'List channels yang terdaftar untuk broadcast:\n';
+
+        // iterate to botMsg
+        channels.forEach((channel, i) => {
+          // Manually concat for each post
+          botMsg += `${i + 1}. ${channel}`;
+
+          // Add newline if it is not the last element
+          botMsg += (i + 1 < length) ? '\n' : '';
+        });
+      } else {
+        botMsg = 'Tidak ada channel yang terdaftar.';
+      }
+
+      bot.reply(message, botMsg);
+    };
+
+    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
+  });
+
+  // Set channel
+  botController.hears(['!setbroadcast'], [ambient], (bot, message) => {
+    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+
+    const onSuccess = (success, channel, status) => {
+      const toggleText = status === '0' ? 'biasa' : 'broadcast';
+      const botMsg = success ?
+        `Sukses menjadikan channel ${channel} menjadi channel ${toggleText}!` :
+        `Gagal menjadikan channel ${channel} menjadi channel ${toggleText}.`;
+
+      bot.reply(message, botMsg);
+    };
+
+    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
+  });
 } else {
   // Local/development mode
   LogUtil.winston.log('info', 'No production environment is detected. Slackbot is not running.');

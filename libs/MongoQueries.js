@@ -18,7 +18,7 @@ function getMediasByTimerange(db, params, callback) {
     })
     .toArray((err, docs) => {
       // Pass object { success, minID, count }
-      const dbResponse = { success: false, data: {} };
+      const dbResponse = { success: false, data: [] };
 
       if (!err) {
         dbResponse.success = true;
@@ -47,7 +47,7 @@ function getFollowersCount(db, params, callback) {
     },
   }).toArray((err, docs) => {
     // Pass object { success, minID, count }
-    const dbResponse = { success: false, data: {} };
+    const dbResponse = { success: false, data: [] };
 
     if (!err) {
       dbResponse.success = true;
@@ -63,7 +63,37 @@ function getFollowersCount(db, params, callback) {
 function getAdmins(db, callback) {
   db.collection('admins').find({}).toArray((err, docs) => {
     // Pass object { success, docs }
-    const dbResponse = { success: false, data: {} };
+    const dbResponse = { success: false, data: [] };
+
+    if (!err) {
+      dbResponse.success = true;
+      dbResponse.data = docs;
+    }
+
+    callback(dbResponse);
+  });
+}
+
+function getAdminById(db, id, callback) {
+  db.collection('admins').find({
+    user_id: id,
+  }).toArray((err, docs) => {
+    // Pass object { success, docs }
+    const dbResponse = { success: false, data: [] };
+
+    if (!err) {
+      dbResponse.success = true;
+      dbResponse.data = docs;
+    }
+
+    callback(dbResponse);
+  });
+}
+
+function getChannels(db, callback) {
+  db.collection('channels').find({}).toArray((err, docs) => {
+    // Pass object { success, docs }
+    const dbResponse = { success: false, data: [] };
 
     if (!err) {
       dbResponse.success = true;
@@ -75,16 +105,45 @@ function getAdmins(db, callback) {
 }
 
 // Setters
-function setAdmin(db, id, adminStatus, callback) {
+function setAdmin(db, userID, adminStatus, callback) {
   db.collection('admins').updateOne(
     {
-      user_id: id,
+      user_id: userID,
     },
     {
       $set: {
         is_admin: adminStatus,
       },
-    }, (err) => {
+    },
+    {
+      upsert: true,
+    },
+    (err) => {
+      const dbResponse = { success: false };
+
+      if (!err) {
+        dbResponse.success = true;
+      }
+
+      callback(dbResponse);
+    }
+  );
+}
+
+function setBroadcastChannel(db, channelID, channelStatus, callback) {
+  db.collection('channels').updateOne(
+    {
+      channel_id: channelID,
+    },
+    {
+      $set: {
+        is_broadcast: channelStatus,
+      },
+    },
+    {
+      upsert: true,
+    },
+    (err) => {
       const dbResponse = { success: false };
 
       if (!err) {
@@ -100,7 +159,7 @@ function setAdmin(db, id, adminStatus, callback) {
 function insertOneToDb(db, collection, doc, callback) {
   db.collection(collection).insertOne(doc, (err, docs) => {
     // Pass object { success, minID, count }
-    const dbResponse = { success: false, data: {} };
+    const dbResponse = { success: false, data: [] };
 
     if (!err) {
       dbResponse.success = true;
@@ -114,7 +173,7 @@ function insertOneToDb(db, collection, doc, callback) {
 function insertManyToDb(db, collection, doc, callback) {
   db.collection(collection).insertMany(doc, (err, docs) => {
     // Pass object { success, minID, count }
-    const dbResponse = { success: false, data: {} };
+    const dbResponse = { success: false, data: [] };
 
     if (!err) {
       dbResponse.success = true;
@@ -129,7 +188,10 @@ module.exports = {
   getMediasByTimerange,
   getFollowersCount,
   getAdmins,
+  getAdminById,
+  getChannels,
   setAdmin,
+  setBroadcastChannel,
   insertOneToDb,
   insertManyToDb,
 };

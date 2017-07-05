@@ -1,11 +1,17 @@
 const moment = require('moment');
 
 const { getMedias } = require('./InstagramDriver');
-const { getListUsers } = require('./SlackDriver');
+const {
+  getListUsers,
+  getListChannels,
+} = require('./SlackDriver');
 const {
   getMediasByTimerange,
   getAdmins,
+  getAdminById,
+  getChannels,
   setAdmin,
+  setBroadcastChannel,
 } = require('./MongoQueries');
 
 // List of command help messages
@@ -18,7 +24,7 @@ const commandHelps = {
   promote: 'promote help!',
   demote: 'demote help!',
   channels: 'channels help!',
-  setchannel: 'setchannel help!',
+  setbroadcast: 'setbroadcast help!',
 };
 
 // List of media commands
@@ -28,7 +34,7 @@ const mediaCommands = [
 
 // List of administration commands
 const adminCommands = [
-  'admins', 'promote', 'demote', 'channels', 'setchannel',
+  'admins', 'promote', 'demote', 'channels', 'setbroadcast',
 ];
 
 // List of query parameters
@@ -57,6 +63,11 @@ const queryParams = [
     param: 'channel',
     prop: 'channel',
     shorthand: 'c',
+  },
+  {
+    param: 'broadcast',
+    prop: 'broadcast',
+    shorthand: 'b',
   },
 ];
 
@@ -141,150 +152,232 @@ const getMediaQueryParams = (parsedObject) => {
 };
 
 const processMessage = (bot, db, message, onSuccess) => {
-  const { command, type, queries } = parseMessage(message);
+  const adminCheckCallback = (adminsResponse) => {
+    if (adminsResponse.data.length) {
+      const { command, type, queries } = parseMessage(message);
 
-  switch (type) {
-    case 'invalid': {
-      bot.reply(message, 'Perintah tidak valid. Cek kembali masukan perintah Anda!');
+      switch (type) {
+        case 'invalid': {
+          bot.reply(message, 'Perintah tidak valid. Cek kembali masukan perintah Anda!');
 
-      break;
-    }
-    case 'help': {
-      bot.reply(message, commandHelps[command]);
-
-      break;
-    }
-    case 'query': {
-      if (mediaCommands.includes(command)) {
-        // If it is a media command
-        const params = getMediaQueryParams(queries);
-
-        if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
-          // db callback
-          const dbCallback = (dbResponse) => {
-            const { success, data } = dbResponse;
-            const {
-              minID = undefined,
-              count = 0,
-            } = data;
-
-            if (success) {
-              // http callback
-              const httpCallback = (response) => {
-                const { data: posts, meta } = JSON.parse(response);
-
-                if (meta.code === 200) {
-                  // Success fetching from API
-                  onSuccess(posts, params);
-                } else if (meta.code === 429) {
-                  // Rate limit reached
-                  bot.reply(message, 'Limit query tercapai. Silahkan tunggu beberapa saat lagi.');
-                }
-              };
-
-              getMedias(minID, undefined, count, httpCallback);
-            }
-          };
-
-          getMediasByTimerange(db, params, dbCallback);
-        } else {
-          bot.reply(message, 'Tanggal input tidak valid!');
+          break;
         }
-      } else if (adminCommands.includes(command)) {
-        // If it is an administration command
-        // 'admins', 'promote', 'demote', 'channels', 'setchannel',
-        switch (command) {
-          case 'admins': {
-            const httpCallback = (response) => {
-              // If successfully hit Slack API
-              const listUsersResponse = JSON.parse(response);
+        case 'help': {
+          bot.reply(message, commandHelps[command]);
 
-              if (listUsersResponse.ok) {
-                const users = listUsersResponse.members;
-                const dbCallback = (dbResponse) => {
-                  // If successfully fetch from MongoDB
-                  if (dbResponse.success) {
-                    const data = dbResponse.data.map(admin => admin.user_id);
-                    const filteredUsers = users
-                      .filter(member => data.includes(member.id))
-                      .map(member => member.name);
+          break;
+        }
+        case 'query': {
+          if (mediaCommands.includes(command)) {
+            // If it is a media command
+            const params = getMediaQueryParams(queries);
 
-                    onSuccess(filteredUsers);
-                  } else {
-                    bot.reply(
-                      message,
-                      'Gagal fetch dari database. Silahkan coba lagi.'
-                    );
-                  }
-                };
+            if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
+              // db callback
+              const dbCallback = (dbResponse) => {
+                const { success, data } = dbResponse;
+                const {
+                  minID = undefined,
+                  count = 0,
+                } = data;
 
-                getAdmins(db, dbCallback);
-              } else {
-                bot.reply(message, response.error);
-              }
-            };
+                if (success) {
+                  // http callback
+                  const httpCallback = (response) => {
+                    const { data: posts, meta } = JSON.parse(response);
 
-            getListUsers(httpCallback);
-
-            break;
-          }
-          case 'promote':
-          case 'demote': {
-            const queryUsername = queries.user;
-            const adminStatus = command === 'promote' ? '1' : '0';
-
-            if (queryUsername) {
-              const httpCallback = (response) => {
-                // If successfully hit Slack API
-                const listUsersResponse = JSON.parse(response);
-
-                if (listUsersResponse.ok) {
-                  const users = listUsersResponse.members;
-                  const {
-                    id: userID,
-                  } = users.find(user => queryUsername === user.name);
-
-                  const dbCallback = (dbResponse) => {
-                    // If successfully fetch from MongoDB
-                    const success = dbResponse.success;
-
-                    if (success) {
-                      onSuccess(success, queryUsername);
-                    } else {
-                      bot.reply(
-                        message,
-                        'Gagal fetch dari database. Silahkan coba lagi.'
-                      );
+                    if (meta.code === 200) {
+                      // Success fetching from API
+                      onSuccess(posts, params);
+                    } else if (meta.code === 429) {
+                      // Rate limit reached
+                      bot.reply(message, 'Limit query tercapai. Silahkan tunggu beberapa saat lagi.');
                     }
                   };
 
-                  setAdmin(db, userID, adminStatus, dbCallback);
-                } else {
-                  bot.reply(message, response.error);
+                  getMedias(minID, undefined, count, httpCallback);
                 }
               };
 
-              getListUsers(httpCallback);
+              getMediasByTimerange(db, params, dbCallback);
             } else {
-              bot.reply(message, 'Argumen tidak valid. Silahkan coba lagi.');
+              bot.reply(message, 'Tanggal input tidak valid!');
             }
+          } else if (adminCommands.includes(command)) {
+            // If it is an administration command
+            // 'admins', 'promote', 'demote', 'channels', 'setbroadcast',
+            switch (command) {
+              case 'admins': {
+                const httpCallback = (response) => {
+                  // If successfully hit Slack API
+                  const listUsersResponse = JSON.parse(response);
 
-            break;
+                  if (listUsersResponse.ok) {
+                    const users = listUsersResponse.members;
+                    const dbCallback = (dbResponse) => {
+                      // If successfully fetch from MongoDB
+                      if (dbResponse.success) {
+                        const data = dbResponse.data.map(admin => admin.user_id);
+                        const filteredUsers = users
+                          .filter(member => data.includes(member.id))
+                          .map(member => member.name);
+
+                        onSuccess(filteredUsers);
+                      } else {
+                        bot.reply(
+                          message,
+                          'Gagal fetch dari database. Silahkan coba lagi.'
+                        );
+                      }
+                    };
+
+                    getAdmins(db, dbCallback);
+                  } else {
+                    bot.reply(message, response.error);
+                  }
+                };
+
+                getListUsers(httpCallback);
+
+                break;
+              }
+              case 'promote':
+              case 'demote': {
+                const queryUsername = queries.user;
+                const adminStatus = command === 'promote' ? '1' : '0';
+
+                if (queryUsername) {
+                  const httpCallback = (response) => {
+                    // If successfully hit Slack API
+                    const listUsersResponse = JSON.parse(response);
+
+                    if (listUsersResponse.ok) {
+                      const users = listUsersResponse.members;
+                      const userObject = users.find(user => queryUsername === user.name);
+
+                      if (userObject) {
+                        const dbCallback = (dbResponse) => {
+                          // If successfully fetch from MongoDB
+                          const success = dbResponse.success;
+
+                          if (success) {
+                            onSuccess(success, queryUsername);
+                          } else {
+                            bot.reply(
+                              message,
+                              'Gagal fetch dari database. Silahkan coba lagi.'
+                            );
+                          }
+                        };
+
+                        setAdmin(db, userObject.id, adminStatus, dbCallback);
+                      } else {
+                        bot.reply(message, 'Username tidak ditemukan. Silahkan coba lagi.');
+                      }
+                    } else {
+                      bot.reply(message, response.error);
+                    }
+                  };
+
+                  getListUsers(httpCallback);
+                } else {
+                  bot.reply(message, 'Argumen tidak lengkap. Silahkan coba lagi.');
+                }
+
+                break;
+              }
+              case 'channels': {
+                const httpCallback = (response) => {
+                  // If successfully hit Slack API
+                  const listChannelsResponse = JSON.parse(response);
+
+                  if (listChannelsResponse.ok) {
+                    const channels = listChannelsResponse.channels;
+                    const dbCallback = (dbResponse) => {
+                      // If successfully fetch from MongoDB
+                      if (dbResponse.success) {
+                        const data = dbResponse.data.map(channel => channel.channel_id);
+                        const filteredChannels = channels
+                          .filter(channel => data.includes(channel.id))
+                          .map(channel => channel.name);
+
+                        onSuccess(filteredChannels);
+                      } else {
+                        bot.reply(
+                          message,
+                          'Gagal fetch dari database. Silahkan coba lagi.'
+                        );
+                      }
+                    };
+
+                    getChannels(db, dbCallback);
+                  } else {
+                    bot.reply(message, response.error);
+                  }
+                };
+
+                getListChannels(httpCallback);
+
+                break;
+              }
+              case 'setbroadcast': {
+                const { channel: channelName, broadcast } = queries;
+
+                if (channelName) {
+                  const broadcastStatus = broadcast === 'off' ? '0' : '1';
+                  const httpCallback = (response) => {
+                    // If successfully hit Slack API
+                    const listChannelsResponse = JSON.parse(response);
+
+                    if (listChannelsResponse.ok) {
+                      const channels = listChannelsResponse.channels;
+                      const channelObject = channels.find(channel => channelName === channel.name);
+
+                      if (channelObject) {
+                        const dbCallback = (dbResponse) => {
+                          // If successfully fetch from MongoDB
+                          const success = dbResponse.success;
+
+                          if (success) {
+                            onSuccess(success, channelName, broadcastStatus);
+                          } else {
+                            bot.reply(
+                              message,
+                              'Gagal fetch dari database. Silahkan coba lagi.'
+                            );
+                          }
+                        };
+
+                        setBroadcastChannel(db, channelObject.id, broadcastStatus, dbCallback);
+                      } else {
+                        bot.reply(message, 'Channel tidak ditemukan. Silahkan coba lagi.');
+                      }
+                    } else {
+                      bot.reply(message, response.error);
+                    }
+                  };
+
+                  getListChannels(httpCallback);
+                } else {
+                  bot.reply(message, 'Argumen tidak lengkap. Silahkan coba lagi.');
+                }
+
+                break;
+              }
+              default: break;
+            }
           }
-          case 'channels': {
-            break;
-          }
-          case 'setchannel': {
-            break;
-          }
-          default: break;
+
+          break;
         }
+        default: break;
       }
-
-      break;
+    } else {
+      bot.reply(message, 'Perintah hanya dapat diberikan oleh admin-admin.');
     }
-    default: break;
-  }
+  };
+
+  getAdminById(db, message.user, adminCheckCallback);
 };
 
 module.exports = {

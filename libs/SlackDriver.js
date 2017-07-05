@@ -26,6 +26,27 @@ function getListUsers(callback) {
   });
 }
 
+function getListChannels(callback) {
+  // JSON Object of POST data
+  const getListChannelsJSON = {
+    token: slackAccessToken,
+  };
+
+  // Stringify JSON and set header options
+  const getListChannelsString = querystring.stringify(getListChannelsJSON);
+  const options = {
+    hostname: 'slack.com',
+    path: `/api/channels.list?${getListChannelsString}`,
+    method: 'GET',
+  };
+
+  // Send request
+  httpsRequest(options, getListChannelsString, (response) => {
+    callback(response);
+  });
+}
+
 module.exports = {
   getListUsers,
+  getListChannels,
 };

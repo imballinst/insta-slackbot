@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-import { parseMessage, setParamsFromMessage } from '../MessageUtil';
+import { parseMessage, getMediaQueryParams } from '../MessageUtil';
 
 describe('MessageUtil component (libs/MessageUtil)', () => {
   it('should parse message correctly', () => {
@@ -46,6 +46,6 @@ describe('MessageUtil component (libs/MessageUtil)', () => {
       sort: 'likes:asc',
     };
 
-    expect(expected).toEqual(setParamsFromMessage(parsedMessageQueries));
+    expect(expected).toEqual(getMediaQueryParams(parsedMessageQueries));
   });
 });

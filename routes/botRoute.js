@@ -5,7 +5,7 @@ const LogUtil = require('../libs/LogUtil');
 const BotLibs = require('../libs/Botkit');
 
 const { getMediaById } = require('../libs/InstagramDriver');
-const { getFollowersCountSince } = require('../libs/MongoQueries');
+// const { getFollowersCount } = require('../libs/MongoQueries');
 const { processMessage, formatDatetime } = require('../libs/MessageUtil');
 
 // Require app
@@ -82,37 +82,13 @@ if (isProd) {
   // List events
   const ambient = 'ambient';
 
-  // On receive events
-  // Help
-  botController.hears(['!help'], [ambient], (bot, message) => {
-    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
-
-    const textArrays = [
-      'Ada dua tipe perintah, yaitu perintah administratif dan perintah query Instagram.',
-      '\t*1. Perintah administratif*',
-      '\t\t• `!help`: Memberikan daftar perintah-perintah yang dapat diinput oleh admin',
-      '\t\t• `!admins`: Menampilkan daftar admin yang berhak memberikan perintah',
-      '\t\t• `!promote`: Memberikan akses admin kepada seorang user',
-      '\t\t• `!demote`: Mencabut akses admin dari seorang user',
-      '\t\t• `!channels`: Menampilkan daftar channel tempat output dari post-post Instagram',
-      '\t\t• `!setchannel`: Menentukan channel tempat output dari post-post Instagram',
-      '\t*2. Perintah query Instagram*',
-      '\t\t• `!review`: Melakukan rekapitulasi post-post dari kurun waktu tertentu',
-      '\t\t• `!mostlikes`: Mencari post-post dengan jumlah likes terbanyak dari kurun waktu tertentu',
-      '\t\t• `!count`: Menghitung jumlah post dari kurun waktu tertentu',
-      '\t\t• `!followers`: Melakukan rekapitulasi jumlah followers per harinya dari kurun waktu tertentu',
-      'Untuk mengetahui detil perintah, ketik perintah tersebut diikuti dengan *--help*. Contoh: `!promote --help`',
-    ];
-    const text = textArrays.join('\n');
-
-    bot.reply(message, text);
-  });
-
-  // Week review
+  /*
+   * Media Commands
+   */
   botController.hears(['!review'], [ambient], (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-    const onSuccessMeta = (posts, params) => {
+    const onSuccess = (posts, params) => {
       const { startDate, endDate, sort } = params;
 
       const start = `*${formatDatetime(moment(startDate, 'DD-MM-YYYY'))}*`;
@@ -172,14 +148,14 @@ if (isProd) {
       bot.reply(message, botMsg);
     };
 
-    processMessage(bot, app.locals.mongoDriver.db, message, onSuccessMeta);
+    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
   });
 
   // Get total likes of posts in a timerange
   botController.hears(['!countlikes'], [ambient], (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-    const onSuccessMeta = (posts, params) => {
+    const onSuccess = (posts, params) => {
       const length = posts.length;
       const { startDate, endDate } = params;
 
@@ -199,14 +175,14 @@ if (isProd) {
       bot.reply(message, botMsg);
     };
 
-    processMessage(bot, app.locals.mongoDriver.db, message, onSuccessMeta);
+    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
   });
 
   // // Get post(s) with the most likes in a timerange
   botController.hears(['!mostlikes'], [ambient], (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-    const onSuccessMeta = (posts, params) => {
+    const onSuccess = (posts, params) => {
       const length = posts.length;
       const { startDate, endDate } = params;
 
@@ -265,45 +241,134 @@ if (isProd) {
       bot.reply(message, botMsg);
     };
 
-    processMessage(bot, app.locals.mongoDriver.db, message, onSuccessMeta);
+    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
   });
 
   // Get post(s) with the most likes in a timerange
-  botController.hears(['!followers'], [ambient], (bot, message) => {
+  // botController.hears(['!followers'], [ambient], (bot, message) => {
+  //   LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+
+  //   const executedFunction = (params) => {
+  //     const callback = (json) => {
+  //       if (json.success) {
+  //         const data = json.data;
+  //         const length = data.length;
+  //         let botMsg = '';
+
+  //         if (length) {
+  //           const start = formatDatetime(moment.unix(data[0].time));
+  //           const end = formatDatetime(moment.unix(data[length - 1].time));
+
+  //           botMsg = `Jumlah followers dari *${start}* hingga *${end}*:\n`;
+
+  //           data.forEach((followersDay, i) => {
+  //             const { time, followers_count: followersCount } = followersDay;
+  //             const timeFormat = formatDatetime(moment.unix(time));
+
+  //             botMsg += `${i + 1}. *${timeFormat}*: *${followersCount}* akun.\n`;
+  //           });
+  //         } else {
+  //           botMsg = 'Query tidak dapat menemukan data yang diminta. Silahkan coba lagi.';
+  //         }
+
+  //         bot.reply(message, botMsg);
+  //       }
+  //     };
+
+  //     getFollowersCount(app.locals.mongoDriver.db, params, callback);
+  //   };
+
+  //   processMessage(bot, message, executedFunction);
+  // });
+
+  /*
+   * Administration Commands
+   */
+
+  // Help
+  botController.hears(['!help'], [ambient], (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-    const executedFunction = (params) => {
-      const callback = (json) => {
-        if (json.success) {
-          const data = json.data;
-          const length = data.length;
-          let botMsg = '';
+    const textArrays = [
+      'Ada dua tipe perintah, yaitu perintah administratif dan perintah query Instagram.',
+      '\t*1. Perintah administratif*',
+      '\t\t• `!help`: Memberikan daftar perintah-perintah yang dapat diinput oleh admin',
+      '\t\t• `!admins`: Menampilkan daftar admin yang berhak memberikan perintah',
+      '\t\t• `!promote`: Memberikan akses admin kepada seorang user',
+      '\t\t• `!demote`: Mencabut akses admin dari seorang user',
+      '\t\t• `!channels`: Menampilkan daftar channel tempat output dari post-post Instagram',
+      '\t\t• `!setchannel`: Menentukan channel tempat output dari post-post Instagram',
+      '\t*2. Perintah query Instagram*',
+      '\t\t• `!review`: Melakukan rekapitulasi post-post dari kurun waktu tertentu',
+      '\t\t• `!mostlikes`: Mencari post-post dengan jumlah likes terbanyak dari kurun waktu tertentu',
+      '\t\t• `!count`: Menghitung jumlah post dari kurun waktu tertentu',
+      // '\t\t• `!followers`: Melakukan rekapitulasi jumlah followers per harinya dari kurun waktu tertentu',
+      'Untuk mengetahui detil perintah, ketik perintah tersebut diikuti dengan *--help*. Contoh: `!promote --help`',
+    ];
+    const text = textArrays.join('\n');
 
-          if (length) {
-            const start = formatDatetime(moment.unix(data[0].time));
-            const end = formatDatetime(moment.unix(data[length - 1].time));
+    bot.reply(message, text);
+  });
 
-            botMsg = `Jumlah followers dari *${start}* hingga *${end}*:\n`;
+  // Get admins
+  botController.hears(['!admins'], [ambient], (bot, message) => {
+    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
-            data.forEach((followersDay, i) => {
-              const { time, followers_count: followersCount } = followersDay;
-              const timeFormat = formatDatetime(moment.unix(time));
+    const onSuccess = (admins) => {
+      const length = admins.length;
+      let botMsg = '';
 
-              botMsg += `${i + 1}. *${timeFormat}*: *${followersCount}* akun.\n`;
-            });
-          } else {
-            botMsg = 'Query tidak dapat menemukan data yang diminta. Silahkan coba lagi.';
-          }
+      if (length) {
+        botMsg = 'List admin yang terdaftar:\n';
 
-          bot.reply(message, botMsg);
-        }
-      };
+        // iterate to botMsg
+        admins.forEach((admin, i) => {
+          // Manually concat for each post
+          botMsg += `${i + 1}. ${admin}`;
 
-      getFollowersCountSince(app.locals.mongoDriver.db, params, callback);
+          // Add newline if it is not the last element
+          botMsg += (i + 1 < length) ? '\n' : '';
+        });
+      } else {
+        botMsg = 'Tidak ada admin yang terdaftar.';
+      }
+
+      bot.reply(message, botMsg);
     };
 
-    processMessage(bot, message, executedFunction);
+    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
   });
+
+  // Set admin
+  botController.hears(['!promote'], [ambient], (bot, message) => {
+    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+
+    const onSuccess = (success, username) => {
+      const botMsg = success ?
+        `Sukses menaikkan ${username} menjadi admin!` :
+        `Gagal menaikkan ${username} menjadi admin`;
+
+      bot.reply(message, botMsg);
+    };
+
+    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
+  });
+
+  botController.hears(['!demote'], [ambient], (bot, message) => {
+    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+
+    const onSuccess = (success, username) => {
+      const botMsg = success ?
+        `Sukses menurunkan ${username} dari jabatan admin!` :
+        `Gagal menurunkan ${username} dari jabatan admin`;
+
+      bot.reply(message, botMsg);
+    };
+
+    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
+  });
+
+  // Channel, set channel
 } else {
   // Local/development mode
   LogUtil.winston.log('info', 'No production environment is detected. Slackbot is not running.');

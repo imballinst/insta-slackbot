@@ -60,29 +60,76 @@ function getFollowersCount(db, params, callback) {
   });
 }
 
-function getFollowersCountSince(db, params, callback) {
-  const buildResponseJSON = (err, data) => {
+function getAdmins(db, callback) {
+  db.collection('admins').find({}).toArray((err, docs) => {
+    // Pass object { success, docs }
+    const dbResponse = { success: false, data: {} };
+
     if (!err) {
-      const jsonResponse = {
-        success: true,
-        data,
-      };
-
-      callback(jsonResponse);
+      dbResponse.success = true;
+      dbResponse.data = docs;
     }
-  };
 
-  getFollowersCount(db, params, buildResponseJSON);
+    callback(dbResponse);
+  });
+}
+
+// Setters
+function setAdmin(db, id, adminStatus, callback) {
+  db.collection('admins').updateOne(
+    {
+      user_id: id,
+    },
+    {
+      $set: {
+        is_admin: adminStatus,
+      },
+    }, (err) => {
+      const dbResponse = { success: false };
+
+      if (!err) {
+        dbResponse.success = true;
+      }
+
+      callback(dbResponse);
+    }
+  );
 }
 
 // Insert into Mongo
-function insertToDb(db, collection, document, callback) {
-  db.collection(collection).insertMany(document, callback);
+function insertOneToDb(db, collection, doc, callback) {
+  db.collection(collection).insertOne(doc, (err, docs) => {
+    // Pass object { success, minID, count }
+    const dbResponse = { success: false, data: {} };
+
+    if (!err) {
+      dbResponse.success = true;
+      dbResponse.data = docs;
+    }
+
+    callback(dbResponse);
+  });
+}
+
+function insertManyToDb(db, collection, doc, callback) {
+  db.collection(collection).insertMany(doc, (err, docs) => {
+    // Pass object { success, minID, count }
+    const dbResponse = { success: false, data: {} };
+
+    if (!err) {
+      dbResponse.success = true;
+      dbResponse.data = docs;
+    }
+
+    callback(dbResponse);
+  });
 }
 
 module.exports = {
   getMediasByTimerange,
   getFollowersCount,
-  getFollowersCountSince,
-  insertToDb,
+  getAdmins,
+  setAdmin,
+  insertOneToDb,
+  insertManyToDb,
 };

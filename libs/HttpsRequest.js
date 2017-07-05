@@ -13,7 +13,7 @@ function httpsRequest(options, data, callback) {
     // On response send data
     let allData = '';
     res.on('data', (chunk) => {
-      LogUtil.winston.log('info', `BODY: ${chunk}`);
+      // LogUtil.winston.log('info', `BODY: ${chunk}`);
 
       allData += chunk;
     });

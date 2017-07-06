@@ -219,10 +219,20 @@ const processMessage = (bot, db, message, onSuccess) => {
                   // http callback
                   const httpCallback = (response) => {
                     const { data: posts, meta } = JSON.parse(response);
+                    const mappedPosts = posts.map((post) => {
+                      const { link, created_time: createdAt, likes, caption } = post;
+
+                      return {
+                        link,
+                        created_time: createdAt,
+                        likes: likes.count,
+                        caption: caption.text,
+                      };
+                    });
 
                     if (meta.code === 200) {
                       // Success fetching from API
-                      onSuccess(posts, params);
+                      onSuccess(mappedPosts, params);
                     } else if (meta.code === 429) {
                       // Rate limit reached
                       bot.reply(message, 'Limit query tercapai. Silahkan tunggu beberapa saat lagi.');
@@ -427,11 +437,43 @@ const processMessage = (bot, db, message, onSuccess) => {
   getAdminById(db, message.user, adminCheckCallback);
 };
 
+function batchReply(bot, messageObj, posts, currentIndex) {
+  setTimeout(() => {
+    const length = posts.length;
+    const {
+      link,
+      created_time: date,
+      likes,
+      caption,
+    } = posts[currentIndex];
+    const createdAt = `*${formatDatetime(moment.unix(date))}*`;
+    const nextIndex = currentIndex + 1;
+    let botMsg = '';
+
+    // Manually concat for each post
+    botMsg += `${currentIndex + 1}. ${link} (${createdAt}) - *${likes}* likes\n ${caption}`;
+
+    // Add newline if it is not the last element
+    botMsg += (nextIndex < length) ? '\n' : '';
+
+    bot.reply(messageObj, botMsg, (err) => {
+      if (!err) {
+        if (nextIndex < length) {
+          batchReply(bot, messageObj, posts.slice(1, length), nextIndex);
+        }
+      } else {
+        bot.reply(messageObj, err);
+      }
+    });
+  }, 1000);
+}
+
 module.exports = {
+  batchReply,
   commandHelps,
+  formatDatetime,
+  getMediaQueryParams,
   isDateValid,
   parseMessage,
-  getMediaQueryParams,
   processMessage,
-  formatDatetime,
 };

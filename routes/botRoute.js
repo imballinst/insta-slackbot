@@ -9,7 +9,7 @@ const {
   // getFollowersCount,
   getChannels,
 } = require('../libs/MongoQueries');
-const { processMessage, formatDatetime } = require('../libs/MessageUtil');
+const { processMessage, formatDatetime, batchReply } = require('../libs/MessageUtil');
 
 // Require app
 const app = require('../app');
@@ -103,58 +103,64 @@ if (isProd) {
       const start = `*${formatDatetime(moment(startDate, 'DD-MM-YYYY'))}*`;
       const end = `*${formatDatetime(moment(endDate, 'DD-MM-YYYY'))}*`;
 
-      let botMsg = '';
+      // let botMsg = '';
       let sortedPosts = posts;
 
       const length = sortedPosts.length;
 
       if (length) {
-        botMsg = `Review dari ${start} hingga ${end}:\n`;
+        // botMsg = `Review dari ${start} hingga ${end}:\n`;
+        bot.reply(message, `Review dari ${start} hingga ${end}:\n`, (err) => {
+          if (!err) {
+            if (sort) {
+              // Sort by defined field if defined
+              const [sortField, sortOrder] = sort.split(':');
+              const orderArray = sortOrder === 'asc' ? [1, -1] : [-1, 1];
 
-        if (sort) {
-          // Sort by defined field if defined
-          const [sortField, sortOrder] = sort.split(':');
-          const orderArray = sortOrder === 'asc' ? [-1, 1] : [1, -1];
+              sortedPosts = posts.sort((a, b) => {
+                if (a[sortField] > b[sortField]) {
+                  return orderArray[0];
+                }
 
-          sortedPosts = posts.sort((a, b) => {
-            if (a[sortField] > b[sortField]) {
-              return orderArray[0];
+                return orderArray[1];
+              });
+            } else {
+              // Sort by date if not defined
+              sortedPosts = posts.sort((a, b) => {
+                if (a.created_time > b.created_time) {
+                  return 1;
+                }
+
+                return -1;
+              });
             }
 
-            return orderArray[1];
-          });
-        } else {
-          // Sort by date if not defined
-          sortedPosts = posts.sort((a, b) => {
-            if (a.created_time > b.created_time) {
-              return 1;
-            }
-
-            return -1;
-          });
-        }
-
-        sortedPosts.forEach((post, i) => {
-          const {
-            link,
-            created_time: date,
-            likes,
-            caption,
-          } = post;
-          const createdAt = `*${formatDatetime(moment.unix(date))}*`;
-          const captionText = (caption) ? caption.text : '';
-
-          // Manually concat for each post
-          botMsg += `${i + 1}. ${link} (${createdAt}) - *${likes.count}* likes\n ${captionText}`;
-
-          // Add newline if it is not the last element
-          botMsg += (i + 1 < length) ? '\n' : '';
+            batchReply(bot, message, posts, 0);
+          } else {
+            bot.reply(message, err);
+          }
         });
+        // sortedPosts.forEach((post, i) => {
+        //   const {
+        //     link,
+        //     created_time: date,
+        //     likes,
+        //     caption,
+        //   } = post;
+        //   const createdAt = `*${formatDatetime(moment.unix(date))}*`;
+
+        //   // Manually concat for each post
+        //   botMsg += `${i + 1}. ${link} (${createdAt}) - *${likes}* likes\n ${caption}`;
+
+        //   // Add newline if it is not the last element
+        //   botMsg += (i + 1 < length) ? '\n' : '';
+        // });
       } else {
-        botMsg = `Tidak ada post dari ${start} hingga ${end}`;
+        // botMsg = `Tidak ada post dari ${start} hingga ${end}`;
+        bot.reply(message, `Tidak ada post dari ${start} hingga ${end}`);
       }
 
-      bot.reply(message, botMsg);
+      // bot.reply(message, botMsg);
     };
 
     processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
@@ -174,7 +180,7 @@ if (isProd) {
       let botMsg = '';
 
       if (length) {
-        const totalLikes = `*${posts.reduce((sum, val) => sum + val.likes.count, 0)}*`;
+        const totalLikes = `*${posts.reduce((sum, val) => sum + val.likes, 0)}*`;
 
         botMsg = `Total post likes count dari ${start} hingga ${end} ada ${totalLikes}.`;
       } else {
@@ -198,7 +204,7 @@ if (isProd) {
       const start = `*${formatDatetime(moment(startDate, 'DD-MM-YYYY'))}*`;
       const end = `*${formatDatetime(moment(endDate, 'DD-MM-YYYY'))}*`;
 
-      let botMsg = '';
+      // let botMsg = '';
 
       if (length) {
         let mostLikedPosts = [];
@@ -213,8 +219,8 @@ if (isProd) {
             caption,
           } = curDoc;
 
-          if (likes.count >= maxLikes) {
-            if (likes.count > maxLikes) {
+          if (likes >= maxLikes) {
+            if (likes > maxLikes) {
               mostLikedPosts = [];
             }
 
@@ -222,32 +228,33 @@ if (isProd) {
             mostLikedPosts = mostLikedPosts.concat({
               link,
               dateMoment: moment.unix(createdAt),
-              likesCount: likes.count,
+              likesCount: likes,
               caption,
             });
           }
 
           // Return the maximum number of likes
-          return Math.max(maxLikes, curDoc.likes.count);
+          return Math.max(maxLikes, curDoc.likes);
         }, -Infinity);
 
         // iterate to botMsg
-        mostLikedPosts.forEach((post, i) => {
-          const { link, dateMoment, likesCount, caption } = post;
-          const createdAt = `*${formatDatetime(dateMoment)}*`;
-          const captionText = (caption) ? caption.text : '';
+        batchReply(bot, message, mostLikedPosts, 0);
+        // mostLikedPosts.forEach((post, i) => {
+        //   const { link, dateMoment, likesCount, caption } = post;
+        //   const createdAt = `*${formatDatetime(dateMoment)}*`;
 
-          // Manually concat for each post
-          botMsg += `${i + 1}. ${link} (${createdAt}) - *${likesCount}* likes\n ${captionText}`;
+        //   // Manually concat for each post
+        //   botMsg += `${i + 1}. ${link} (${createdAt}) - *${likesCount}* likes\n ${caption}`;
 
-          // Add newline if it is not the last element
-          botMsg += (i + 1 < length) ? '\n' : '';
-        });
+        //   // Add newline if it is not the last element
+        //   botMsg += (i + 1 < length) ? '\n' : '';
+        // });
       } else {
-        botMsg = `Tidak ada post dari ${start} hingga ${end}`;
+        bot.reply(message, `Tidak ada post dari ${start} hingga ${end}`);
+        // botMsg = `Tidak ada post dari ${start} hingga ${end}`;
       }
 
-      bot.reply(message, botMsg);
+      // bot.reply(message, botMsg);
     };
 
     processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);

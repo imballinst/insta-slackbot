@@ -21,7 +21,7 @@ function helpTemplate(command, help, example) {
   const exampleText = example !== '' ? `Contoh penggunaan: ${example}\n` : '';
 
   return header + body + exampleText;
-};
+}
 
 // Specific command help
 const mediaArgs =
@@ -41,7 +41,7 @@ const cmdExamples = {
   mostlikes: '`!mostlikes -f 25-05-2015 -t 25-05-2016` atau `!mostlikes --from 25-05-2015 --to 25-05-2016`\n',
   countlikes: '`!countlikes -f 25-05-2015 -t 25-05-2016` atau `!countlikes --from 25-05-2015 --to 25-05-2016`\n',
   help: '',
-  admins:  '',
+  admins: '',
   promote: '`!promote -u try.aji` atau `!promote --user try.aji`\n',
   demote: '`!demote -u try.aji` atau `!demote --user try.aji`\n',
   channels: '',
@@ -50,15 +50,15 @@ const cmdExamples = {
 
 // Whole help command
 const commandHelps = {
-  review: helpTemplate('review', mediaArgs + sortParams, cmdExamples['review']),
-  mostlikes:  helpTemplate('mostlikes', mediaArgs, cmdExamples['mostlikes']),
-  countlikes: helpTemplate('countlikes', mediaArgs, cmdExamples['countlikes']),
+  review: helpTemplate('review', mediaArgs + sortParams, cmdExamples.review),
+  mostlikes: helpTemplate('mostlikes', mediaArgs, cmdExamples.mostlikes),
+  countlikes: helpTemplate('countlikes', mediaArgs, cmdExamples.countlikes),
   help: 'Tidak diperlukan bantuan untuk perintah ini.\n',
-  admins:  'Tidak diperlukan bantuan untuk perintah ini.\n',
-  promote: helpTemplate('promote', moteArgs, cmdExamples['promote']),
-  demote: helpTemplate('demote', moteArgs, cmdExamples['demote']),
+  admins: 'Tidak diperlukan bantuan untuk perintah ini.\n',
+  promote: helpTemplate('promote', moteArgs, cmdExamples.promote),
+  demote: helpTemplate('demote', moteArgs, cmdExamples.demote),
   channels: 'Tidak diperlukan bantuan untuk perintah ini.\n',
-  setbroadcast: helpTemplate('setbroadcast', setBroadcastArgs, cmdExamples['setbroadcast']),
+  setbroadcast: helpTemplate('setbroadcast', setBroadcastArgs, cmdExamples.setbroadcast),
 };
 
 // List of media commands

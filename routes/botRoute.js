@@ -386,7 +386,7 @@ if (isProd) {
       let botMsg = '';
 
       if (length) {
-        botMsg = 'List channels yang terdaftar untuk broadcast:\n';
+        botMsg = 'List public channels yang terdaftar untuk broadcast:\n';
 
         // iterate to botMsg
         channels.forEach((channel, i) => {
@@ -397,7 +397,7 @@ if (isProd) {
           botMsg += (i + 1 < length) ? '\n' : '';
         });
       } else {
-        botMsg = 'Tidak ada channel yang terdaftar.';
+        botMsg = 'Tidak ada public channel yang terdaftar untuk broadcast.';
       }
 
       bot.reply(message, botMsg);

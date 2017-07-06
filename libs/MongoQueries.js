@@ -61,7 +61,9 @@ function getFollowersCount(db, params, callback) {
 }
 
 function getAdmins(db, callback) {
-  db.collection('admins').find({}).toArray((err, docs) => {
+  db.collection('admins').find({
+    is_admin: '1',
+  }).toArray((err, docs) => {
     // Pass object { success, docs }
     const dbResponse = { success: false, data: [] };
 
@@ -77,6 +79,7 @@ function getAdmins(db, callback) {
 function getAdminById(db, id, callback) {
   db.collection('admins').find({
     user_id: id,
+    is_admin: '1',
   }).toArray((err, docs) => {
     // Pass object { success, docs }
     const dbResponse = { success: false, data: [] };

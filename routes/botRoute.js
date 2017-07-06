@@ -89,12 +89,12 @@ if (isProd) {
   });
 
   // List events
-  const ambient = 'ambient';
+  const events = ['ambient', 'direct_message'];
 
   /*
    * Media Commands
    */
-  botController.hears(['!review'], [ambient], (bot, message) => {
+  botController.hears(['!review'], events, (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (posts, params) => {
@@ -167,7 +167,7 @@ if (isProd) {
   });
 
   // Get total likes of posts in a timerange
-  botController.hears(['!countlikes'], [ambient], (bot, message) => {
+  botController.hears(['!countlikes'], events, (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (posts, params) => {
@@ -194,7 +194,7 @@ if (isProd) {
   });
 
   // // Get post(s) with the most likes in a timerange
-  botController.hears(['!mostlikes'], [ambient], (bot, message) => {
+  botController.hears(['!mostlikes'], events, (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (posts, params) => {
@@ -261,7 +261,7 @@ if (isProd) {
   });
 
   // Get post(s) with the most likes in a timerange
-  // botController.hears(['!followers'], [ambient], (bot, message) => {
+  // botController.hears(['!followers'], events, (bot, message) => {
   //   LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
   //   const executedFunction = (params) => {
@@ -302,7 +302,7 @@ if (isProd) {
    */
 
   // Help
-  botController.hears(['!help'], [ambient], (bot, message) => {
+  botController.hears(['!help'], events, (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
     const textArrays = [
@@ -327,7 +327,7 @@ if (isProd) {
   });
 
   // Get admins
-  botController.hears(['!admins'], [ambient], (bot, message) => {
+  botController.hears(['!admins'], events, (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (admins) => {
@@ -356,7 +356,7 @@ if (isProd) {
   });
 
   // Set admin
-  botController.hears(['!promote'], [ambient], (bot, message) => {
+  botController.hears(['!promote'], events, (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (success, username) => {
@@ -370,7 +370,7 @@ if (isProd) {
     processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
   });
 
-  botController.hears(['!demote'], [ambient], (bot, message) => {
+  botController.hears(['!demote'], events, (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (success, username) => {
@@ -385,7 +385,7 @@ if (isProd) {
   });
 
   // Get channels
-  botController.hears(['!channels'], [ambient], (bot, message) => {
+  botController.hears(['!channels'], events, (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (channels) => {
@@ -414,7 +414,7 @@ if (isProd) {
   });
 
   // Set channel
-  botController.hears(['!setbroadcast'], [ambient], (bot, message) => {
+  botController.hears(['!setbroadcast'], events, (bot, message) => {
     LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (success, channel, status) => {

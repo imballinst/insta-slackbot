@@ -54,4 +54,4 @@ Argument     | Shorthand     | Default          | Description             | Rela
 ------------ | ------------- | ---------------- | ----------------------- | ------------------- | -------- |
 --user       | -u            | -                | Slack username          | *promote*, *demote* | Yes      |
 --channel    | -c            | -                | Channel name or `~here` | *setbroadcast*      | Yes      |
---broadcast  | -b            | `on`             | `on` or `off`           | *setbroadcast*      | No       |
+--broadcast  | -b            | `on`             | Toggle `on` or `off`    | *setbroadcast*      | No       |

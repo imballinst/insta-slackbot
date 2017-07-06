@@ -33,7 +33,7 @@ const sortParams = '\t• `--sort`, `-s`: urutan dalam format *field:order*. Con
 
 const moteArgs = '\t• `--user`, `-u`: nama username. Contoh: `try.aji`\n';
 const setBroadcastArgs = '\t• `--channel`, `-c` (*wajib*): nama channel. Contoh: `general`. Default: `-`\n' +
-  '\t• `--broadcast`, `-b`: status broadcast untuk channel, `on` atau `off`. Contoh: `on`. Default: `on`\n';
+  '\t• `--broadcast`, `-b`: status broadcast untuk channel, `on`, `off`, atau `~here`. Contoh: `on`. Default: `on`\n';
 
 // Examples
 const cmdExamples = {

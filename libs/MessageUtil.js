@@ -18,7 +18,7 @@ const {
 const commandHelps = {
   review: 'review help!',
   mostlikes: 'mostlikes help!',
-  count: 'count help!',
+  countlikes: 'countlikes help!',
   help: 'help help!',
   admins: 'admins help!',
   promote: 'promote help!',
@@ -29,7 +29,7 @@ const commandHelps = {
 
 // List of media commands
 const mediaCommands = [
-  'review', 'mostlikes', 'count',
+  'review', 'mostlikes', 'countlikes',
 ];
 
 // List of administration commands

@@ -19,11 +19,11 @@ Command     | Description                       | Status    |
 
 #### Query Commands Arguments
 
-Argument     | Shorthand     | Default          | Description                           | Related commands    |
------------- | ------------- | ---------------- | ------------------------------------- | ------------------- |
---from       | -f            | Last Monday      | Start date in *DD-MM-YYYY* format     | *all commands*      |
---to         | -t            | Next Sunday      | End date in *DD-MM-YYYY* format       | *all commands*      |
---sort       | -s            | -                | Sorting order in *field:order* format | *review*            |
+Argument     | Shorthand     | Default          | Description                           | Related commands    | Required |
+------------ | ------------- | ---------------- | ------------------------------------- | ------------------- | -------- |
+--from       | -f            | Last Monday      | Start date in *DD-MM-YYYY* format     | *all commands*      | No       |
+--to         | -t            | Next Sunday      | End date in *DD-MM-YYYY* format       | *all commands*      | No       |
+--sort       | -s            | `likes:desc`     | Sorting order in *field:order* format | *review*            | No       |
 
 Available sorting parameters for sort argument:
 
@@ -39,18 +39,19 @@ Available sorting parameters for sort argument:
 
 #### List of Administration Commands
 
-Command     | Description                             | Status    |
------------ | --------------------------------------- | --------- |
-!help       | Show list of commands                   | Available |
-!admins     | Show list of admins                     | Available |
-!promote    | Grant given user admin privilege        | Available |
-!demote     | Remove privilege from given user        | Available |
-!channels   | Show output channels from posted medias | Available |
-!setchannel | Set output channel from posted medias   | Available |
+Command       | Description                             | Status    |
+------------- | --------------------------------------- | --------- |
+!help         | Show list of commands                   | Available |
+!admins       | Show list of admins                     | Available |
+!promote      | Grant given user admin privilege        | Available |
+!demote       | Remove privilege from given user        | Available |
+!channels     | Show list of broadcast channels         | Available |
+!setbroadcast | Set channel to broadcast posted medias  | Available |
 
 #### Administration Commands Arguments
 
-Argument     | Shorthand     | Default          | Description     | Related commands    |
------------- | ------------- | ---------------- | --------------- | ------------------- |
---user       | -u            | -                | Slack username  | *promote*, *demote* |
---channel    | -c            | -                | Channel name/ID | *setchannel*        |
+Argument     | Shorthand     | Default          | Description             | Related commands    | Required |
+------------ | ------------- | ---------------- | ----------------------- | ------------------- | -------- |
+--user       | -u            | -                | Slack username          | *promote*, *demote* | Yes      |
+--channel    | -c            | -                | Channel name or `~here` | *setbroadcast*      | Yes      |
+--broadcast  | -b            | `on`             | `on` or `off`           | *setbroadcast*      | No       |

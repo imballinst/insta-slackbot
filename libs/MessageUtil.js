@@ -257,7 +257,7 @@ const processMessage = (bot, db, message, onSuccess) => {
 
                       if (userObject) {
                         const dbCallback = (dbResponse) => {
-                          // If successfully fetch from MongoDB
+                          // If successfully set to MongoDB
                           const success = dbResponse.success;
 
                           if (success) {
@@ -265,7 +265,7 @@ const processMessage = (bot, db, message, onSuccess) => {
                           } else {
                             bot.reply(
                               message,
-                              'Gagal fetch dari database. Silahkan coba lagi.'
+                              'Gagal memasukkan ke database. Silahkan coba lagi.'
                             );
                           }
                         };
@@ -332,7 +332,7 @@ const processMessage = (bot, db, message, onSuccess) => {
 
                     if (listChannelsResponse.ok) {
                       // If API doesn't return error
-                      let channelID = '';
+                      let channelID;
 
                       if (channelName === '~here') {
                         channelID = message.channel;
@@ -342,9 +342,9 @@ const processMessage = (bot, db, message, onSuccess) => {
                         channelID = channels.find(channel => channelName === channel.name).id;
                       }
 
-                      if (channelID !== '') {
+                      if (channelID) {
                         const dbCallback = (dbResponse) => {
-                          // If successfully fetch from MongoDB
+                          // If successfully set to MongoDB
                           const success = dbResponse.success;
 
                           if (success) {
@@ -352,14 +352,17 @@ const processMessage = (bot, db, message, onSuccess) => {
                           } else {
                             bot.reply(
                               message,
-                              'Gagal fetch dari database. Silahkan coba lagi.'
+                              'Gagal memasukkan ke database. Silahkan coba lagi.'
                             );
                           }
                         };
 
                         setBroadcastChannel(db, channelID, broadcastStatus, dbCallback);
                       } else {
-                        bot.reply(message, 'Channel tidak ditemukan. Silahkan coba lagi.');
+                        bot.reply(
+                          message,
+                          'Channel tidak ditemukan. Pastikan channel tersebut public.'
+                        );
                       }
                     } else {
                       // If API returns an error

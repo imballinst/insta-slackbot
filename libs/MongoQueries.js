@@ -91,7 +91,9 @@ function getAdminById(db, id, callback) {
 }
 
 function getChannels(db, callback) {
-  db.collection('channels').find({}).toArray((err, docs) => {
+  db.collection('channels').find({
+    is_broadcast: '1',
+  }).toArray((err, docs) => {
     // Pass object { success, docs }
     const dbResponse = { success: false, data: [] };
 

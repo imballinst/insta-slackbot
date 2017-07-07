@@ -213,7 +213,7 @@ const processMessage = (bot, db, message, onSuccess) => {
                 const {
                   minID = undefined,
                   maxID = undefined,
-                  count = undefined,
+                  count = 0,
                 } = data;
 
                 if (success) {

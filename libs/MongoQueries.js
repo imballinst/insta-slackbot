@@ -27,7 +27,7 @@ function getMediasByTimerange(db, params, callback) {
           dbResponse.data = {
             minID: docs[docs.length - 1].id,
             maxID: docs[0].id,
-            count: docs.length - 1,
+            count: docs.length,
           };
         }
       }

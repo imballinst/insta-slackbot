@@ -462,7 +462,7 @@ function batchReply(bot, messageObj, posts, currentIndex) {
     const captionText = caption !== '' ? `${caption}\n\n` : '';
     const nextIndex = currentIndex + 1;
     let botMsg = '';
-    console.log(currentIndex, posts.length)
+
     // Manually concat for each post
     botMsg += `${currentIndex + 1}. ${link} (${createdAt}) - *${likes}* likes\n\n`;
     botMsg += `${captionText} ${tagsText} *Comments count*: ${comments}.`;

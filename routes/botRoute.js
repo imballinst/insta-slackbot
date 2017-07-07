@@ -107,7 +107,7 @@ if (isProd) {
       let sortedPosts = posts;
 
       const length = sortedPosts.length;
-      console.log(length);
+
       if (length) {
         // botMsg = `Review dari ${start} hingga ${end}:\n`;
         bot.reply(message, `Review dari ${start} hingga ${end}:\n`, (err) => {

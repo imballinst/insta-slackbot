@@ -8,7 +8,7 @@ function getMediasByTimerange(db, params, callback) {
   const { startDate, endDate } = params;
   const startDateMoment = moment(startDate, 'DD-MM-YYYY').utcOffset(420);
   const endDateMoment = moment(endDate, 'DD-MM-YYYY').utcOffset(420);
-  console.log(startDateMoment.unix());
+
   db.collection('postedmedias')
     .find({
       created_time: {
@@ -19,7 +19,7 @@ function getMediasByTimerange(db, params, callback) {
     .toArray((err, docs) => {
       // Pass object { success, minID, count }
       const dbResponse = { success: false, data: [] };
-      console.log(docs);
+
       if (!err) {
         dbResponse.success = true;
 

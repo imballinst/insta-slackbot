@@ -27,7 +27,7 @@ function helpTemplate(command, help, example) {
 const mediaArgs =
   '\t• `--from`, `-f`: waktu awal dalam format *DD-MM-YYYY*. Contoh: `25-05-2015`. Default: awal minggu ini.\n' +
   '\t• `--to`, `-t`: waktu akhir dalam format *DD-MM-YYYY*. Contoh: `25-05-2016`. Default: akhir minggu ini.\n';
-const sortParams = '\t• `--sort`, `-s`: urutan dalam format *field:order*. Contoh: `likes:asc`. Default: `likes:asc`\n' +
+const sortParams = '\t• `--sort`, `-s`: urutan dalam format *field:order*. Contoh: `likes:asc`. Default: `time:asc`\n' +
   '\t\t- *field*: atribut untuk diurutkan, diantaranya `likes`, `comments`, `time`, `tags`.\n' +
   '\t\t- *order*: urutan hasil query, yaitu `asc` (kecil-besar) atau `desc` (besar-kecil).\n';
 
@@ -212,7 +212,7 @@ const processMessage = (bot, db, message, onSuccess) => {
                 const { success, data } = dbResponse;
                 const {
                   minID = undefined,
-                  count = 0,
+                  count = undefined,
                 } = data;
 
                 if (success) {
@@ -220,13 +220,22 @@ const processMessage = (bot, db, message, onSuccess) => {
                   const httpCallback = (response) => {
                     const { data: posts, meta } = JSON.parse(response);
                     const mappedPosts = posts.map((post) => {
-                      const { link, created_time: createdAt, likes, caption } = post;
+                      const {
+                        link,
+                        created_time: createdAt,
+                        likes,
+                        caption,
+                        comments,
+                        tags,
+                      } = post;
 
                       return {
                         link,
                         created_time: createdAt,
                         likes: likes.count,
-                        caption: caption.text,
+                        caption: caption ? caption.text : '',
+                        comments: comments.count,
+                        tags,
                       };
                     });
 
@@ -445,21 +454,23 @@ function batchReply(bot, messageObj, posts, currentIndex) {
       created_time: date,
       likes,
       caption,
+      comments,
+      tags,
     } = posts[currentIndex];
     const createdAt = `*${formatDatetime(moment.unix(date))}*`;
+    const tagsText = tags.length ? `*Tags*: _${tags.join(',')}_.\n` : '';
+    const captionText = caption !== '' ? `${caption}\n\n` : '';
     const nextIndex = currentIndex + 1;
     let botMsg = '';
-
+    console.log(currentIndex, posts.length)
     // Manually concat for each post
-    botMsg += `${currentIndex + 1}. ${link} (${createdAt}) - *${likes}* likes\n ${caption}`;
-
-    // Add newline if it is not the last element
-    botMsg += (nextIndex < length) ? '\n' : '';
+    botMsg += `${currentIndex + 1}. ${link} (${createdAt}) - *${likes}* likes\n\n`;
+    botMsg += `${captionText} ${tagsText} *Comments count*: ${comments}.`;
 
     bot.reply(messageObj, botMsg, (err) => {
       if (!err) {
         if (nextIndex < length) {
-          batchReply(bot, messageObj, posts.slice(1, length), nextIndex);
+          batchReply(bot, messageObj, posts, nextIndex);
         }
       } else {
         bot.reply(messageObj, err);

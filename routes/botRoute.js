@@ -107,7 +107,7 @@ if (isProd) {
       let sortedPosts = posts;
 
       const length = sortedPosts.length;
-
+      console.log(length);
       if (length) {
         // botMsg = `Review dari ${start} hingga ${end}:\n`;
         bot.reply(message, `Review dari ${start} hingga ${end}:\n`, (err) => {
@@ -135,7 +135,7 @@ if (isProd) {
               });
             }
 
-            batchReply(bot, message, posts, 0);
+            batchReply(bot, message, sortedPosts, 0);
           } else {
             bot.reply(message, err);
           }
@@ -227,8 +227,8 @@ if (isProd) {
             // For immutability
             mostLikedPosts = mostLikedPosts.concat({
               link,
-              dateMoment: moment.unix(createdAt),
-              likesCount: likes,
+              created_time: createdAt,
+              likes,
               caption,
             });
           }
@@ -317,7 +317,7 @@ if (isProd) {
       '\t2. *Perintah query Instagram*',
       '\t\t• `!review`: Melakukan rekapitulasi post-post dari kurun waktu tertentu',
       '\t\t• `!mostlikes`: Mencari post-post dengan jumlah likes terbanyak dari kurun waktu tertentu',
-      '\t\t• `!count`: Menghitung jumlah post dari kurun waktu tertentu',
+      '\t\t• `!countlikes`: Menghitung jumlah post likes  dari kurun waktu tertentu',
       // '\t\t• `!followers`: Melakukan rekapitulasi jumlah followers per harinya dari kurun waktu tertentu',
       'Untuk mengetahui detil perintah, ketik perintah tersebut diikuti dengan *--help*. Contoh: `!promote --help`',
     ];

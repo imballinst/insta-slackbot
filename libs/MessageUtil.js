@@ -212,6 +212,7 @@ const processMessage = (bot, db, message, onSuccess) => {
                 const { success, data } = dbResponse;
                 const {
                   minID = undefined,
+                  maxID = undefined,
                   count = undefined,
                 } = data;
 
@@ -248,7 +249,7 @@ const processMessage = (bot, db, message, onSuccess) => {
                     }
                   };
 
-                  getMedias(minID, undefined, count, httpCallback);
+                  getMedias(minID, maxID, count, httpCallback);
                 }
               };
 
@@ -457,8 +458,9 @@ function batchReply(bot, messageObj, posts, currentIndex) {
       comments,
       tags,
     } = posts[currentIndex];
+
     const createdAt = `*${formatDatetime(moment.unix(date))}*`;
-    const tagsText = tags.length ? `*Tags*: _${tags.join(',')}_.\n` : '';
+    const tagsText = tags.length > 0 ? `*Tags*: _${tags.join(',')}_.\n` : '';
     const captionText = caption !== '' ? `${caption}\n\n` : '';
     const nextIndex = currentIndex + 1;
     let botMsg = '';

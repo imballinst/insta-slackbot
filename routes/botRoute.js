@@ -217,6 +217,8 @@ if (isProd) {
             created_time: createdAt,
             likes,
             caption,
+            tags,
+            comments,
           } = curDoc;
 
           if (likes >= maxLikes) {
@@ -230,6 +232,8 @@ if (isProd) {
               created_time: createdAt,
               likes,
               caption,
+              tags,
+              comments,
             });
           }
 

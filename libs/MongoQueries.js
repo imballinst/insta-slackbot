@@ -12,8 +12,8 @@ function getMediasByTimerange(db, params, callback) {
   db.collection('postedmedias')
     .find({
       created_time: {
-        $gte: startDateMoment.unix().toString(),
-        $lte: endDateMoment.unix().toString(),
+        $gte: startDateMoment.unix(),
+        $lte: endDateMoment.unix(),
       },
     })
     .toArray((err, docs) => {
@@ -25,8 +25,9 @@ function getMediasByTimerange(db, params, callback) {
 
         if (docs.length) {
           dbResponse.data = {
-            minID: docs[0].id,
-            count: docs.length,
+            minID: docs[docs.length - 1].id,
+            maxID: docs[0].id,
+            count: docs.length - 1,
           };
         }
       }
@@ -42,8 +43,8 @@ function getFollowersCount(db, params, callback) {
 
   db.collection('followers').find({
     time: {
-      $gte: startDateMoment.unix().toString(),
-      $lte: endDateMoment.unix().toString(),
+      $gte: startDateMoment.unix(),
+      $lte: endDateMoment.unix(),
     },
   }).toArray((err, docs) => {
     // Pass object { success, minID, count }

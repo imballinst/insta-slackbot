@@ -16,6 +16,7 @@ function getMediasByTimerange(db, params, callback) {
         $lte: endDateMoment.unix(),
       },
     })
+    .sort([['created_time', -1]])
     .toArray((err, docs) => {
       // Pass object { success, minID, count }
       const dbResponse = { success: false, data: [] };

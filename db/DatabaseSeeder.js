@@ -32,7 +32,7 @@ function insertMockData(db, callback) {
     mediaArray = json.data.map((media) => {
       const { id, created_time: createdTime } = media;
 
-      return { created_time: parseInt(createdTime, 10), id };
+      return { id, created_time: parseInt(createdTime, 10) };
     });
 
     adminArray.push(

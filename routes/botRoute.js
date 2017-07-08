@@ -114,8 +114,11 @@ if (isProd) {
           if (!err) {
             if (sort) {
               // Sort by defined field if defined
-              const [sortField, sortOrder] = sort.split(':');
+              const [sortFieldInput, sortOrder] = sort.split(':');
               const orderArray = sortOrder === 'asc' ? [1, -1] : [-1, 1];
+
+              // Make an exception to created_time
+              const sortField = sortFieldInput === 'time' ? 'created_time' : sortFieldInput;
 
               sortedPosts = posts.sort((a, b) => {
                 if (a[sortField] > b[sortField]) {

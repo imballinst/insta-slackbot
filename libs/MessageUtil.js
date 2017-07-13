@@ -212,7 +212,7 @@ const processMessage = (bot, db, message, onSuccess) => {
                 const { success, data } = dbResponse;
                 const {
                   minID = undefined,
-                  maxID = undefined,
+                  // maxID = undefined,
                   count = 0,
                 } = data;
 
@@ -249,7 +249,7 @@ const processMessage = (bot, db, message, onSuccess) => {
                     }
                   };
 
-                  getMedias(minID, maxID, count, httpCallback);
+                  getMedias(minID, undefined, count, httpCallback);
                 }
               };
 

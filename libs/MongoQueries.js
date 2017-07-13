@@ -8,7 +8,6 @@ function getMediasByTimerange(db, params, callback) {
   const { startDate, endDate } = params;
   const startDateMoment = moment(startDate, 'DD-MM-YYYY').utcOffset(420);
   const endDateMoment = moment(endDate, 'DD-MM-YYYY').utcOffset(420);
-
   db.collection('postedmedias')
     .find({
       created_time: {

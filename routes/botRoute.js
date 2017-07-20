@@ -61,6 +61,7 @@ if (isProd) {
       if (meta.code === 200) {
         // If media exists
         const { id, created_time: createdTime, link, caption } = data;
+        const text = caption && caption.text ? `\n\n"${caption.text}"` : '';
 
         app.locals.mongoDriver.db.collection('postedmedias').insertOne({
           id,
@@ -72,7 +73,7 @@ if (isProd) {
         const getChannelsCallback = (dbResponse) => {
           dbResponse.data.forEach((channel) => {
             botInstance.say({
-              text: `Ada post baru nih di Instagram! ${link}\n\n"${caption.text}"`,
+              text: `Ada post baru nih di Instagram! ${link} ${text}"`,
               channel: channel.channel_id,
             });
           });

@@ -61,7 +61,7 @@ if (isProd) {
       if (meta.code === 200) {
         // If media exists
         const { id, created_time: createdTime, link, caption } = data;
-        const text = typeof caption.text !== 'undefined' ? `\n\n"${caption.text}"` : '';
+        const text = caption ? `\n\n"${caption.text}"` : '';
 
         app.locals.mongoDriver.db.collection('postedmedias').insertOne({
           id,

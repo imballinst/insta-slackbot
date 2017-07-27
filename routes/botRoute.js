@@ -73,7 +73,7 @@ if (isProd) {
         const getChannelsCallback = (dbResponse) => {
           dbResponse.data.forEach((channel) => {
             botInstance.say({
-              text: `Ada post baru nih di Instagram! ${link} ${text}"`,
+              text: `Ada post baru nih di Instagram! ${link} ${text}`,
               channel: channel.channel_id,
             });
           });
@@ -144,21 +144,6 @@ if (isProd) {
             bot.reply(message, err);
           }
         });
-        // sortedPosts.forEach((post, i) => {
-        //   const {
-        //     link,
-        //     created_time: date,
-        //     likes,
-        //     caption,
-        //   } = post;
-        //   const createdAt = `*${formatDatetime(moment.unix(date))}*`;
-
-        //   // Manually concat for each post
-        //   botMsg += `${i + 1}. ${link} (${createdAt}) - *${likes}* likes\n ${caption}`;
-
-        //   // Add newline if it is not the last element
-        //   botMsg += (i + 1 < length) ? '\n' : '';
-        // });
       } else {
         // botMsg = `Tidak ada post dari ${start} hingga ${end}`;
         bot.reply(message, `Tidak ada post dari ${start} hingga ${end}`);
@@ -247,16 +232,6 @@ if (isProd) {
 
         // iterate to botMsg
         batchReply(bot, message, mostLikedPosts, 0);
-        // mostLikedPosts.forEach((post, i) => {
-        //   const { link, dateMoment, likesCount, caption } = post;
-        //   const createdAt = `*${formatDatetime(dateMoment)}*`;
-
-        //   // Manually concat for each post
-        //   botMsg += `${i + 1}. ${link} (${createdAt}) - *${likesCount}* likes\n ${caption}`;
-
-        //   // Add newline if it is not the last element
-        //   botMsg += (i + 1 < length) ? '\n' : '';
-        // });
       } else {
         bot.reply(message, `Tidak ada post dari ${start} hingga ${end}`);
         // botMsg = `Tidak ada post dari ${start} hingga ${end}`;
@@ -268,7 +243,7 @@ if (isProd) {
     processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
   });
 
-  // Get post(s) with the most likes in a timerange
+  // Get followers count; this if the Instagram app has went live
   // botController.hears(['!followers'], events, (bot, message) => {
   //   LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
 

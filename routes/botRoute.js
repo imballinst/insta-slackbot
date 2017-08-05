@@ -65,7 +65,7 @@ if (isProd) {
 
         app.locals.mongoDriver.db.collection('postedmedias').insertOne({
           id,
-          created_time: parseInt(createdTime, 10),
+          created_time: new Date(moment.unix(parseInt(createdTime, 10)).toISOString()),
         });
 
         res.send();

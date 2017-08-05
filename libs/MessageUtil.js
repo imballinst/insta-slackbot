@@ -1,6 +1,8 @@
+// TODO: refactor this thing
+
 const moment = require('moment');
 
-const { getMedias } = require('./InstagramDriver');
+const { getMedias, getMediaById } = require('./InstagramDriver');
 const {
   getListUsers,
   getListChannels,
@@ -212,44 +214,77 @@ const processMessage = (bot, db, message, onSuccess) => {
                 const { success, data } = dbResponse;
                 const {
                   minID = undefined,
-                  // maxID = undefined,
+                  maxID = undefined,
                   count = 0,
                 } = data;
 
-                if (success) {
-                  // http callback
-                  const httpCallback = (response) => {
-                    const { data: posts, meta } = JSON.parse(response);
-                    const mappedPosts = posts.map((post) => {
-                      const {
-                        link,
-                        created_time: createdAt,
-                        likes,
-                        caption,
-                        comments,
-                        tags,
-                      } = post;
+                if (success && count > 0) {
+                  // Get all medias except maxID
+                  const httpCallback = (responseString) => {
+                    const { data: posts, meta } = JSON.parse(responseString);
 
-                      return {
-                        link,
-                        created_time: createdAt,
-                        likes: likes.count,
-                        caption: caption ? caption.text : '',
-                        comments: comments.count,
-                        tags,
-                      };
-                    });
+                    // Get media with maxID
+                    const httpCallback2 = (responseString2) => {
+                      const { data: maxIDPost, meta: meta2 } = JSON.parse(responseString2);
+                      const mappedPosts = posts.map((post) => {
+                        const {
+                          link,
+                          created_time: createdAt,
+                          likes,
+                          caption,
+                          comments,
+                          tags,
+                        } = post;
+
+                        return {
+                          link,
+                          created_time: createdAt,
+                          likes: likes.count,
+                          caption: caption ? caption.text : '',
+                          comments: comments.count,
+                          tags,
+                        };
+                      });
+
+                      // Concat all, ones w/o maxID and maxID
+                      const wholePosts = [
+                        {
+                          link: maxIDPost.link,
+                          created_time: maxIDPost.created_time,
+                          likes: maxIDPost.likes.count,
+                          caption: maxIDPost.caption ? maxIDPost.caption.text : '',
+                          comments: maxIDPost.comments ? maxIDPost.comments.count : 0,
+                          tags: maxIDPost.tags,
+                        },
+                      ].concat(mappedPosts);
+
+                      if (meta2.code === 200) {
+                        // Success fetching from API
+                        onSuccess(wholePosts, params);
+                      } else if (meta2.code === 429) {
+                        // Rate limit reached
+                        bot.reply(
+                          message,
+                          'Limit query tercapai. Silahkan tunggu beberapa saat lagi.'
+                        );
+                      }
+                    };
 
                     if (meta.code === 200) {
                       // Success fetching from API
-                      onSuccess(mappedPosts, params);
+                      getMediaById(maxID, httpCallback2);
                     } else if (meta.code === 429) {
                       // Rate limit reached
-                      bot.reply(message, 'Limit query tercapai. Silahkan tunggu beberapa saat lagi.');
+                      bot.reply(
+                        message,
+                        'Limit query tercapai. Silahkan tunggu beberapa saat lagi.'
+                      );
                     }
                   };
 
-                  getMedias(minID, undefined, count, httpCallback);
+                  getMedias(minID, maxID, count, httpCallback);
+                } else {
+                  onSuccess([], params);
                 }
               };
 

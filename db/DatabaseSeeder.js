@@ -10,48 +10,13 @@ const { getMedias } = require('../libs/InstagramDriver');
 const isProd = process.env.NODE_ENV === 'production';
 
 function insertMockData(db, callback) {
-  const followerArray = [];
-  const adminArray = [];
-  let mediaArray = [];
-  let followersCount = 500;
-
-  // Function to random a number between min and max
-  const getRandomNumber = (min, max) => Math.floor((Math.random() * (max - min)) + min);
-
-  // Insert mock data for 14 days backward
-  for (let i = 30; i >= 0; i -= 1) {
-    const time = moment().utcOffset(7).hour(0).minute(0).second(0).subtract(i, 'days').unix();
-
-    // Followers
-    followerArray.push({ time: time.toString(), followers_count: followersCount });
-    followersCount += getRandomNumber(1, 10);
-  }
-
   getMedias(undefined, undefined, undefined, (response) => {
     const json = JSON.parse(response);
-    mediaArray = json.data.map((media) => {
+    const mediaArray = json.data.map((media) => {
       const { id, created_time: createdTime } = media;
 
-      return { id, created_time: parseInt(createdTime, 10) };
+      return { id, created_time: new Date(moment.unix(parseInt(createdTime, 10)).toISOString()) };
     });
-
-    adminArray.push(
-      {
-        user_id: 'U1Y4059UM',
-        // username: 'try.aji',
-        is_admin: '1',
-      },
-      {
-        user_id: 'U0L63DYL8',
-        // username: 'abdymalikmulky',
-        is_admin: '0',
-      },
-      {
-        user_id: 'U3ZD2BT0D',
-        // username: 'putrabangga',
-        is_admin: '0',
-      }
-    );
 
     // Insert into postedmedias collection
     db.collection('postedmedias').insertMany(mediaArray, (err) => {
@@ -61,27 +26,24 @@ function insertMockData(db, callback) {
         LogUtil.winston.log('info', 'Successfully mocked "postedmedias" collection!');
       }
 
-      // Insert into followers collection
-      db.collection('followers').insertMany(followerArray, (err) => {
+      const adminArray = [{
+        user_id: 'U1Y4059UM',
+        // username: 'try.aji',
+        is_admin: '1',
+      }];
+
+      // Insert into admins collection
+      db.collection('admins').insertMany(adminArray, (err) => {
         if (err) {
-          LogUtil.winston.log('error', 'Failed to mock "followers" collection!');
+          LogUtil.winston.log('error', 'Failed to mock "admins" collection!');
         } else {
-          LogUtil.winston.log('info', 'Successfully mocked "followers" collection!');
+          LogUtil.winston.log('info', 'Successfully mocked "admins" collection!');
         }
 
-        // Insert into admins collection
-        db.collection('admins').insertMany(adminArray, (err) => {
-          if (err) {
-            LogUtil.winston.log('error', 'Failed to mock "admins" collection!');
-          } else {
-            LogUtil.winston.log('info', 'Successfully mocked "admins" collection!');
-          }
-
-          // Callback function
-          if (typeof callback === 'function') {
-            callback(db);
-          }
-        });
+        // Callback function
+        if (typeof callback === 'function') {
+          callback(db);
+        }
       });
     });
   });
@@ -96,31 +58,23 @@ function clearCollection(db, callback) {
       LogUtil.winston.log('info', 'Successfully truncated "postedmedias" collection!');
     }
 
-    db.collection('followers').deleteMany({}, (err, r) => {
+    db.collection('admins').deleteMany({}, (err, r) => {
       if (err) {
-        LogUtil.winston.log('error', 'Failed to truncate "followers" collection!');
+        LogUtil.winston.log('error', 'Failed to truncate "admins" collection!');
       } else {
-        LogUtil.winston.log('info', 'Successfully truncated "followers" collection!');
+        LogUtil.winston.log('info', 'Successfully truncated "admins" collection!');
       }
 
-      db.collection('admins').deleteMany({}, (err, r) => {
+      db.collection('channels').deleteMany({}, (err, r) => {
         if (err) {
-          LogUtil.winston.log('error', 'Failed to truncate "admins" collection!');
+          LogUtil.winston.log('error', 'Failed to truncate "channels" collection!');
         } else {
-          LogUtil.winston.log('info', 'Successfully truncated "admins" collection!');
+          LogUtil.winston.log('info', 'Successfully truncated "channels" collection!');
         }
 
-        db.collection('channels').deleteMany({}, (err, r) => {
-          if (err) {
-            LogUtil.winston.log('error', 'Failed to truncate "channels" collection!');
-          } else {
-            LogUtil.winston.log('info', 'Successfully truncated "channels" collection!');
-          }
-
-          if (typeof callback === 'function') {
-            callback(db);
-          }
-        });
+        if (typeof callback === 'function') {
+          callback(db);
+        }
       });
     });
   });

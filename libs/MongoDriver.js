@@ -15,6 +15,7 @@ const MongoDriver = {
     that.closeDBConnection = that.closeDBConnection.bind(that);
 
     MongoClient.connect(url, (err, db) => {
+      // This disini udah bukan MongoDriver lagi, soalnya udah masuk konteks callback
       if (err) {
         LogUtil.winston.log('error', `Error happened when connecting to database: ${err}.`);
       } else {

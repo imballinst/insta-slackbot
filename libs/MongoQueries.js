@@ -8,11 +8,12 @@ function getMediasByTimerange(db, params, callback) {
   const { startDate, endDate } = params;
   const startDateMoment = moment(startDate, 'DD-MM-YYYY').utcOffset(420);
   const endDateMoment = moment(endDate, 'DD-MM-YYYY').utcOffset(420);
+
   db.collection('postedmedias')
     .find({
       created_time: {
-        $gte: startDateMoment.unix(),
-        $lte: endDateMoment.unix(),
+        $gte: new Date(startDateMoment),
+        $lte: new Date(endDateMoment),
       },
     })
     .sort([['created_time', -1]])
@@ -36,30 +37,30 @@ function getMediasByTimerange(db, params, callback) {
     });
 }
 
-function getFollowersCount(db, params, callback) {
-  const { startDate, endDate } = params;
-  const startDateMoment = moment(startDate, 'DD-MM-YYYY').utcOffset(420);
-  const endDateMoment = moment(endDate, 'DD-MM-YYYY').utcOffset(420);
+// function getFollowersCount(db, params, callback) {
+//   const { startDate, endDate } = params;
+//   const startDateMoment = moment(startDate, 'DD-MM-YYYY').utcOffset(420);
+//   const endDateMoment = moment(endDate, 'DD-MM-YYYY').utcOffset(420);
 
-  db.collection('followers').find({
-    time: {
-      $gte: startDateMoment.unix(),
-      $lte: endDateMoment.unix(),
-    },
-  }).toArray((err, docs) => {
-    // Pass object { success, minID, count }
-    const dbResponse = { success: false, data: [] };
+//   db.collection('followers').find({
+//     time: {
+//       $gte: new Date(startDateMoment),
+//       $lte: new Date(endDateMoment),
+//     },
+//   }).toArray((err, docs) => {
+//     // Pass object { success, minID, count }
+//     const dbResponse = { success: false, data: [] };
 
-    if (!err) {
-      dbResponse.success = true;
-      dbResponse.data = {
-        count: docs.count,
-      };
-    }
+//     if (!err) {
+//       dbResponse.success = true;
+//       dbResponse.data = {
+//         count: docs.count,
+//       };
+//     }
 
-    callback(dbResponse);
-  });
-}
+//     callback(dbResponse);
+//   });
+// }
 
 function getAdmins(db, callback) {
   db.collection('admins').find({
@@ -192,7 +193,7 @@ function insertManyToDb(db, collection, doc, callback) {
 
 module.exports = {
   getMediasByTimerange,
-  getFollowersCount,
+  // getFollowersCount,
   getAdmins,
   getAdminById,
   getChannels,

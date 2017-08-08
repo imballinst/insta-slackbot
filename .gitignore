@@ -1,3 +1,5 @@
 node_modules/
 .env
+.env.staging
+.env.prod
 npm-debug.log

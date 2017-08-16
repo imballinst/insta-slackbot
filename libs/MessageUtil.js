@@ -2,11 +2,11 @@
 
 const moment = require('moment');
 
-const { getMedias, getMediaById } = require('./InstagramDriver');
+const { getMedias, getMediaById } = require('./InstagramQueries');
 const {
   getListUsers,
   getListChannels,
-} = require('./SlackDriver');
+} = require('./SlackQueries');
 const {
   getMediasByTimerange,
   getAdmins,
@@ -333,7 +333,7 @@ const processMessage = (bot, db, message, onSuccess) => {
               case 'promote':
               case 'demote': {
                 const queryUsername = queries.user;
-                const adminStatus = command === 'promote' ? '1' : '0';
+                const adminStatus = command === 'promote' ? 1 : 0;
 
                 if (queryUsername) {
                   const httpCallback = (response) => {
@@ -414,7 +414,7 @@ const processMessage = (bot, db, message, onSuccess) => {
                 let channelName = queries.channel;
 
                 if (channelName) {
-                  const broadcastStatus = broadcast === 'off' ? '0' : '1';
+                  const broadcastStatus = broadcast === 'off' ? 0 : 1;
                   const httpCallback = (response) => {
                     // If successfully hit Slack API
                     const listChannelsResponse = JSON.parse(response);

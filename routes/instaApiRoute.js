@@ -1,10 +1,10 @@
 // Import modules
 const app = require('../app');
-const InstagramDriver = require('../libs/InstagramDriver');
+const InstagramQueries = require('../libs/InstagramQueries');
 
 // Destructure functions
-const getMediaById = InstagramDriver.getMediaById;
-const getSelfProfile = InstagramDriver.getSelfProfile;
+const getMediaById = InstagramQueries.getMediaById;
+const getSelfProfile = InstagramQueries.getSelfProfile;
 
 // API things
 const slackVerificationToken = process.env.SLACK_MESSAGE_VERIFICATION_TOKEN;

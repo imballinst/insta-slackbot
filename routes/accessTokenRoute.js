@@ -4,7 +4,7 @@ const querystring = require('querystring');
 const app = require('../app');
 const httpsRequest = require('../libs/HttpsRequest');
 const replaceAccessToken = require('../libs/ReplaceAccessToken');
-const LogUtil = require('../libs/LogUtil');
+const { winstonInfo, winstonError } = require('../libs/LogUtil');
 
 // API things
 const clientID = process.env.CLIENT_ID;
@@ -38,7 +38,7 @@ app.post('/authorize', (req, res) => {
 
     res.redirect(getCodeURL);
   } else {
-    LogUtil.winston.log('error', `Authorization failed with password ${password}!`);
+    winstonError(`Authorization failed with password ${password}!`);
   }
 });
 
@@ -73,7 +73,7 @@ app.get('/get-response-code', (req, res) => {
 
       res.send('Authorization and access token change successful!');
 
-      LogUtil.winston.log('info', `Access token changed to ${accessToken}`);
+      winstonInfo(`Access token changed to ${accessToken}`);
     };
 
     // Send request

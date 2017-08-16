@@ -5,25 +5,7 @@ const httpsRequest = require('./HttpsRequest');
 
 const instaAccessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
 
-function getSelfProfile(callback) {
-  // JSON Object of POST data
-  const getSelfJSON = {
-    access_token: instaAccessToken,
-  };
-
-  // Stringify JSON and set header options
-  const getSelfString = querystring.stringify(getSelfJSON);
-  const options = {
-    hostname: 'api.instagram.com',
-    path: `/v1/users/self?${getSelfString}`,
-    method: 'GET',
-  };
-
-  // Send request
-  httpsRequest(options, undefined, callback);
-}
-
-function getMediaById(mediaID, callback) {
+function getMediaById(mediaID) {
   // JSON Object of POST data
   const getMediaJSON = {
     access_token: instaAccessToken,
@@ -38,10 +20,10 @@ function getMediaById(mediaID, callback) {
   };
 
   // Send request
-  httpsRequest(options, undefined, callback);
+  return httpsRequest(options, undefined);
 }
 
-function getMedias(minID, maxID, count, callback) {
+function getMedias(minID, maxID, count) {
   // JSON Object of POST data
   const getMediasJSON = {
     access_token: instaAccessToken,
@@ -61,10 +43,10 @@ function getMedias(minID, maxID, count, callback) {
   };
 
   // Send request
-  httpsRequest(options, undefined, callback);
+  return httpsRequest(options, undefined);
 }
 
-function getFollowers(callback) {
+function getFollowers() {
   // JSON Object of POST data
   const getFollowersJSON = {
     access_token: instaAccessToken,
@@ -79,11 +61,10 @@ function getFollowers(callback) {
   };
 
   // Send request
-  httpsRequest(options, undefined, callback);
+  return httpsRequest(options, undefined);
 }
 
 module.exports = {
-  getSelfProfile,
   getMediaById,
   getMedias,
   getFollowers,

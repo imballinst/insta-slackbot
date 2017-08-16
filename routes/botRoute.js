@@ -1,10 +1,10 @@
 // Import modules
 const moment = require('moment');
 
-const LogUtil = require('../libs/LogUtil');
+const { winstonInfo, winstonError } = require('../libs/LogUtil');
 const BotLibs = require('../libs/Botkit');
 
-const { getMediaById } = require('../libs/InstagramDriver');
+const { getMediaById } = require('../libs/InstagramQueries');
 const {
   // getFollowersCount,
   getChannels,
@@ -15,12 +15,11 @@ const { processMessage, formatDatetime, batchReply } = require('../libs/MessageU
 const app = require('../app');
 
 // Get node environment
-// const slackChannelID = process.env.SLACK_CHANNEL;
 const isProd = process.env.NODE_ENV === 'production';
 
 if (isProd) {
   // If app is running in production mode
-  LogUtil.winston.log('info', 'Production environment detected. Starting Slackbot.');
+  winstonInfo('Production environment detected. Starting Slackbot.');
 
   // Initialize the bot
   BotLibs.init();
@@ -32,7 +31,7 @@ if (isProd) {
   const startRTM = () => {
     botInstance.startRTM((err) => {
       if (err) {
-        LogUtil.winston.log('error', err);
+        winstonError(err);
       }
     });
   };
@@ -42,14 +41,14 @@ if (isProd) {
 
   // Start the real-time messaging if it is closed
   botController.on('rtm_close', () => {
-    LogUtil.winston.log('info', 'RTM closed. Restarting RTM now!');
+    winstonInfo('RTM closed. Restarting RTM now!');
 
     startRTM();
   });
 
   // On route hit
   app.post('/callback-sub', (req, res) => {
-    LogUtil.winston.log('info', 'Got POST request from Instagram Subscriptions: ', req.body);
+    winstonInfo('Got POST request from Instagram Subscriptions: ', req.body);
 
     // JSON Object of POST data
     const mediaID = req.body['0'].data.media_id;
@@ -82,7 +81,7 @@ if (isProd) {
         getChannels(app.locals.mongoDriver.db, getChannelsCallback);
       } else {
         // If media doesn't exist
-        LogUtil.winston.log('error', 'Media not found!');
+        winstonError('Media not found!');
       }
     };
 
@@ -96,7 +95,7 @@ if (isProd) {
    * Media Commands
    */
   botController.hears(['!review'], events, (bot, message) => {
-    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+    winstonInfo(`Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (posts, params) => {
       const { startDate, endDate, sort } = params;
@@ -157,7 +156,7 @@ if (isProd) {
 
   // Get total likes of posts in a timerange
   botController.hears(['!countlikes'], events, (bot, message) => {
-    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+    winstonInfo(`Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (posts, params) => {
       const length = posts.length;
@@ -184,7 +183,7 @@ if (isProd) {
 
   // // Get post(s) with the most likes in a timerange
   botController.hears(['!mostlikes'], events, (bot, message) => {
-    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+    winstonInfo(`Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (posts, params) => {
       const length = posts.length;
@@ -245,7 +244,7 @@ if (isProd) {
 
   // Get followers count; this if the Instagram app has went live
   // botController.hears(['!followers'], events, (bot, message) => {
-  //   LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+  //   winstonInfo(`Message: ${JSON.stringify(message)}`);
 
   //   const executedFunction = (params) => {
   //     const callback = (json) => {
@@ -286,7 +285,7 @@ if (isProd) {
 
   // Help
   botController.hears(['!help'], events, (bot, message) => {
-    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+    winstonInfo(`Message: ${JSON.stringify(message)}`);
 
     const textArrays = [
       'Ada dua tipe perintah, yaitu perintah administratif dan perintah query Instagram.',
@@ -311,7 +310,7 @@ if (isProd) {
 
   // Get admins
   botController.hears(['!admins'], events, (bot, message) => {
-    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+    winstonInfo(`Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (admins) => {
       const length = admins.length;
@@ -340,7 +339,7 @@ if (isProd) {
 
   // Set admin
   botController.hears(['!promote'], events, (bot, message) => {
-    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+    winstonInfo(`Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (success, username) => {
       const botMsg = success ?
@@ -354,7 +353,7 @@ if (isProd) {
   });
 
   botController.hears(['!demote'], events, (bot, message) => {
-    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+    winstonInfo(`Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (success, username) => {
       const botMsg = success ?
@@ -369,7 +368,7 @@ if (isProd) {
 
   // Get channels
   botController.hears(['!channels'], events, (bot, message) => {
-    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+    winstonInfo(`Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (channels) => {
       const length = channels.length;
@@ -398,7 +397,7 @@ if (isProd) {
 
   // Set channel
   botController.hears(['!setbroadcast'], events, (bot, message) => {
-    LogUtil.winston.log('info', `Message: ${JSON.stringify(message)}`);
+    winstonInfo(`Message: ${JSON.stringify(message)}`);
 
     const onSuccess = (success, channel, status) => {
       const toggleText = status === '0' ? 'biasa' : 'broadcast';
@@ -413,5 +412,5 @@ if (isProd) {
   });
 } else {
   // Local/development mode
-  LogUtil.winston.log('info', 'No production environment is detected. Slackbot is not running.');
+  winstonInfo('No production environment is detected. Slackbot is not running.');
 }

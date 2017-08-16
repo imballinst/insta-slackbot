@@ -5,8 +5,8 @@ require('dotenv').config();
 const http = require('http');
 
 const app = require('../app');
-const LogUtil = require('../libs/LogUtil');
 const MongoDriver = require('../libs/MongoDriver');
+const winstonInfo = require('../libs/LogUtil').winstonInfo;
 
 // Set MongoDriver as locals in app
 app.locals.mongoDriver = MongoDriver;
@@ -26,5 +26,5 @@ const server = new http.Server(app);
 const portApp = (process.env.PORT) || 3001;
 
 server.listen(portApp, () => {
-  LogUtil.winston.log('info', `Listening on port ${portApp}!`);
+  winstonInfo(`Listening on port ${portApp}!`);
 });

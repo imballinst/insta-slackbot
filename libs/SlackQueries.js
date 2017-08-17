@@ -6,7 +6,7 @@ const httpsRequest = require('../libs/HttpsRequest');
 // API things
 const slackAccessToken = process.env.SLACK_ACCESS_TOKEN;
 
-function getListUsers(callback) {
+function getListUsers() {
   // JSON Object of POST data
   const getListUsersJSON = {
     token: slackAccessToken,
@@ -21,12 +21,10 @@ function getListUsers(callback) {
   };
 
   // Send request
-  httpsRequest(options, getListUsersString, (response) => {
-    callback(response);
-  });
+  return httpsRequest(options, getListUsersString);
 }
 
-function getListChannels(callback) {
+function getListChannels() {
   // JSON Object of POST data
   const getListChannelsJSON = {
     token: slackAccessToken,
@@ -41,9 +39,7 @@ function getListChannels(callback) {
   };
 
   // Send request
-  httpsRequest(options, getListChannelsString, (response) => {
-    callback(response);
-  });
+  return httpsRequest(options, getListChannelsString);
 }
 
 module.exports = {

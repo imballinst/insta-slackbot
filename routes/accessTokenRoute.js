@@ -66,18 +66,17 @@ app.get('/get-response-code', (req, res) => {
       },
     };
 
-    const callback = (json) => {
-      const accessToken = JSON.parse(json).access_token;
-
-      replaceAccessToken(accessToken);
-
-      res.send('Authorization and access token change successful!');
-
-      winstonInfo(`Access token changed to ${accessToken}`);
-    };
-
     // Send request
-    httpsRequest(options, getTokenString, callback);
+    httpsRequest(options, getTokenString)
+      .then((response) => {
+        const accessToken = JSON.parse(response).access_token;
+
+        replaceAccessToken(accessToken);
+
+        res.send('Authorization and access token change successful!');
+
+        winstonInfo(`Access token changed to ${accessToken}`);
+      });
   } else {
     res.send(req.query);
   }

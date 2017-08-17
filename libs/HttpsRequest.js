@@ -1,4 +1,5 @@
 const https = require('https');
+const Promise = require('bluebird');
 
 const winstonInfo = require('../libs/LogUtil').winstonInfo;
 

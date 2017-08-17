@@ -23,12 +23,11 @@ app.get('/list-channels', (_, res) => {
     method: 'GET',
   };
 
-  const callback = (json) => {
-    res.send(json);
-  };
-
   // Send request
-  httpsRequest(options, getSelfString, callback);
+  httpsRequest(options, getSelfString)
+    .then((response) => {
+      res.send(response);
+    });
 });
 
 app.get('/list-users', (_, res) => {
@@ -45,10 +44,9 @@ app.get('/list-users', (_, res) => {
     method: 'GET',
   };
 
-  const callback = (json) => {
-    res.send(json);
-  };
-
   // Send request
-  httpsRequest(options, getSelfString, callback);
+  httpsRequest(options, getSelfString)
+    .then((response) => {
+      res.send(response);
+    });
 });

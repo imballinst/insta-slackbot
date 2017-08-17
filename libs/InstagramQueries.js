@@ -2,6 +2,7 @@
 const querystring = require('querystring');
 
 const httpsRequest = require('./HttpsRequest');
+const Promise = require('bluebird');
 
 const instaAccessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
 
@@ -42,8 +43,13 @@ function getMedias(minID, maxID, count) {
     method: 'GET',
   };
 
+  const mediaMaxID = maxID ? getMediaById(maxID) : undefined;
+
   // Send request
-  return httpsRequest(options, undefined);
+  return Promise.all([
+    httpsRequest(options, undefined),
+    mediaMaxID,
+  ]);
 }
 
 function getFollowers() {

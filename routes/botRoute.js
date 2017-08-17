@@ -9,7 +9,7 @@ const {
   // getFollowersCount,
   getChannels,
 } = require('../libs/MongoQueries');
-const { processMessage, formatDatetime, batchReply } = require('../libs/MessageUtil');
+const { processMessage, batchReply } = require('../libs/MessageUtil');
 
 // Require app
 const app = require('../app');
@@ -53,43 +53,40 @@ if (isProd) {
     // JSON Object of POST data
     const mediaID = req.body['0'].data.media_id;
 
-    const callback = (json) => {
-      const jsonObject = JSON.parse(json);
-      const { data, meta } = jsonObject;
+    getMediaById(mediaID)
+      .then((response) => {
+        const jsonObject = JSON.parse(response);
+        const { data, meta } = jsonObject;
 
-      if (meta.code === 200) {
-        // If media exists
-        const { id, created_time: createdTime, link, caption } = data;
-        const text = caption ? `\n\n"${caption.text}"` : '';
+        if (meta.code === 200) {
+          // If media exists
+          const { id, created_time: createdTime, link, caption } = data;
+          const text = caption ? `\n\n"${caption.text}"` : '';
 
-        app.locals.mongoDriver.db.collection('postedmedias').insertOne({
-          id,
-          created_time: new Date(moment.unix(parseInt(createdTime, 10)).toISOString()),
-        });
-
-        res.send();
-
-        const getChannelsCallback = (dbResponse) => {
-          dbResponse.data.forEach((channel) => {
-            botInstance.say({
-              text: `Ada post baru nih di Instagram! ${link} ${text}`,
-              channel: channel.channel_id,
-            });
+          app.locals.mongoDriver.db.collection('postedmedias').insertOne({
+            id,
+            created_time: new Date(moment.unix(parseInt(createdTime, 10)).toISOString()),
           });
-        };
 
-        getChannels(app.locals.mongoDriver.db, getChannelsCallback);
-      } else {
-        // If media doesn't exist
-        winstonError('Media not found!');
-      }
-    };
+          res.send();
 
-    getMediaById(mediaID, callback);
+          return getChannels(app.locals.mongoDriver.db)
+            .then((dbResponse) => {
+              dbResponse.data.forEach((channel) => {
+                botInstance.say({
+                  text: `Ada post baru nih di Instagram! ${link} ${text}`,
+                  channel: channel.channel_id,
+                });
+              });
+            });
+        }
+          // If media doesn't exist
+        throw new Error('Media not found!');
+      });
   });
 
   // List events
-  const events = ['ambient', 'direct_message'];
+  const events = ['direct_message'];
 
   /*
    * Media Commands
@@ -97,109 +94,75 @@ if (isProd) {
   botController.hears(['!review'], events, (bot, message) => {
     winstonInfo(`Message: ${JSON.stringify(message)}`);
 
-    const onSuccess = (posts, params) => {
-      const { startDate, endDate, sort } = params;
+    processMessage(bot, app.locals.mongoDriver.db, message)
+      .then(({ posts, params }) => {
+        const { startDate, endDate, sort } = params;
 
-      const start = `*${formatDatetime(moment(startDate, 'DD-MM-YYYY'))}*`;
-      const end = `*${formatDatetime(moment(endDate, 'DD-MM-YYYY'))}*`;
+        // let botMsg = '';
+        let sortedPosts = posts;
 
-      // let botMsg = '';
-      let sortedPosts = posts;
+        if (sort) {
+          const [sortFieldInput, sortOrder] = sort.split(':');
+          const orderArray = sortOrder === 'asc' ? [1, -1] : [-1, 1];
 
-      const length = sortedPosts.length;
+          const sortField = sortFieldInput === 'time' ? 'created_time' : sortFieldInput;
 
-      if (length) {
-        // botMsg = `Review dari ${start} hingga ${end}:\n`;
-        bot.reply(message, `Review dari ${start} hingga ${end}:\n`, (err) => {
-          if (!err) {
-            if (sort) {
-              // Sort by defined field if defined
-              const [sortFieldInput, sortOrder] = sort.split(':');
-              const orderArray = sortOrder === 'asc' ? [1, -1] : [-1, 1];
-
-              // Make an exception to created_time
-              const sortField = sortFieldInput === 'time' ? 'created_time' : sortFieldInput;
-
-              sortedPosts = posts.sort((a, b) => {
-                if (a[sortField] > b[sortField]) {
-                  return orderArray[0];
-                }
-
-                return orderArray[1];
-              });
-            } else {
-              // Sort by date if not defined
-              sortedPosts = posts.sort((a, b) => {
-                if (a.created_time > b.created_time) {
-                  return 1;
-                }
-
-                return -1;
-              });
+          sortedPosts = posts.sort((a, b) => {
+            if (a[sortField] > b[sortField]) {
+              return orderArray[0];
             }
 
+            return orderArray[1];
+          });
+        } else {
+          // Sort by date if not defined
+          sortedPosts = posts.sort((a, b) => {
+            if (a.created_time > b.created_time) {
+              return 1;
+            }
+
+            return -1;
+          });
+        }
+
+        bot.reply(message, `Review dari ${startDate} hingga ${endDate}:\n`, (err) => {
+          if (!err) {
             batchReply(bot, message, sortedPosts, 0);
           } else {
             bot.reply(message, err);
           }
         });
-      } else {
-        // botMsg = `Tidak ada post dari ${start} hingga ${end}`;
-        bot.reply(message, `Tidak ada post dari ${start} hingga ${end}`);
-      }
-
-      // bot.reply(message, botMsg);
-    };
-
-    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
+      }).catch(err => bot.reply(message, err));
   });
 
   // Get total likes of posts in a timerange
   botController.hears(['!countlikes'], events, (bot, message) => {
     winstonInfo(`Message: ${JSON.stringify(message)}`);
 
-    const onSuccess = (posts, params) => {
-      const length = posts.length;
-      const { startDate, endDate } = params;
+    processMessage(bot, app.locals.mongoDriver.db, message)
+      .then(({ posts, params }) => {
+        const { startDate, endDate } = params;
 
-      const start = `*${formatDatetime(moment(startDate, 'DD-MM-YYYY'))}*`;
-      const end = `*${formatDatetime(moment(endDate, 'DD-MM-YYYY'))}*`;
-
-      let botMsg = '';
-
-      if (length) {
         const totalLikes = `*${posts.reduce((sum, val) => sum + val.likes, 0)}*`;
 
-        botMsg = `Total post likes count dari ${start} hingga ${end} ada ${totalLikes}.`;
-      } else {
-        botMsg = `Tidak ada post dari ${start} hingga ${end}.`;
-      }
-
-      bot.reply(message, botMsg);
-    };
-
-    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
+        bot.reply(
+          message,
+          `Total post likes count dari ${startDate} hingga ${endDate} ada ${totalLikes}.`
+        );
+      }).catch(err => bot.reply(message, err));
   });
 
-  // // Get post(s) with the most likes in a timerange
+  // Get post(s) with the most likes in a timerange
   botController.hears(['!mostlikes'], events, (bot, message) => {
     winstonInfo(`Message: ${JSON.stringify(message)}`);
 
-    const onSuccess = (posts, params) => {
-      const length = posts.length;
-      const { startDate, endDate } = params;
+    processMessage(bot, app.locals.mongoDriver.db, message)
+      .then(({ posts, params }) => {
+        const { startDate, endDate } = params;
 
-      const start = `*${formatDatetime(moment(startDate, 'DD-MM-YYYY'))}*`;
-      const end = `*${formatDatetime(moment(endDate, 'DD-MM-YYYY'))}*`;
-
-      // let botMsg = '';
-
-      if (length) {
         let mostLikedPosts = [];
 
-        // fill mostLikedPosts with the post with maxLikes
         posts.reduce((maxLikes, curDoc) => {
-          // If likes of current post is higher, push to mostLikedPosts
           const {
             link,
             created_time: createdAt,
@@ -210,9 +173,7 @@ if (isProd) {
           } = curDoc;
 
           if (likes >= maxLikes) {
-            if (likes > maxLikes) {
-              mostLikedPosts = [];
-            }
+            if (likes > maxLikes) { mostLikedPosts = []; }
 
             // For immutability
             mostLikedPosts = mostLikedPosts.concat({
@@ -229,55 +190,17 @@ if (isProd) {
           return Math.max(maxLikes, curDoc.likes);
         }, -Infinity);
 
-        // iterate to botMsg
-        batchReply(bot, message, mostLikedPosts, 0);
-      } else {
-        bot.reply(message, `Tidak ada post dari ${start} hingga ${end}`);
-        // botMsg = `Tidak ada post dari ${start} hingga ${end}`;
-      }
-
-      // bot.reply(message, botMsg);
-    };
-
-    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
+        bot.reply(
+          message,
+          `Post dengan likes terbanyak dari ${startDate} hingga ${endDate}:\n`,
+          (err) => {
+            if (!err) {
+              batchReply(bot, message, mostLikedPosts, 0);
+            }
+          }
+        );
+      }).then(err => bot.reply(message, err));
   });
-
-  // Get followers count; this if the Instagram app has went live
-  // botController.hears(['!followers'], events, (bot, message) => {
-  //   winstonInfo(`Message: ${JSON.stringify(message)}`);
-
-  //   const executedFunction = (params) => {
-  //     const callback = (json) => {
-  //       if (json.success) {
-  //         const data = json.data;
-  //         const length = data.length;
-  //         let botMsg = '';
-
-  //         if (length) {
-  //           const start = formatDatetime(moment.unix(data[0].time));
-  //           const end = formatDatetime(moment.unix(data[length - 1].time));
-
-  //           botMsg = `Jumlah followers dari *${start}* hingga *${end}*:\n`;
-
-  //           data.forEach((followersDay, i) => {
-  //             const { time, followers_count: followersCount } = followersDay;
-  //             const timeFormat = formatDatetime(moment.unix(time));
-
-  //             botMsg += `${i + 1}. *${timeFormat}*: *${followersCount}* akun.\n`;
-  //           });
-  //         } else {
-  //           botMsg = 'Query tidak dapat menemukan data yang diminta. Silahkan coba lagi.';
-  //         }
-
-  //         bot.reply(message, botMsg);
-  //       }
-  //     };
-
-  //     getFollowersCount(app.locals.mongoDriver.db, params, callback);
-  //   };
-
-  //   processMessage(bot, message, executedFunction);
-  // });
 
   /*
    * Administration Commands
@@ -312,103 +235,92 @@ if (isProd) {
   botController.hears(['!admins'], events, (bot, message) => {
     winstonInfo(`Message: ${JSON.stringify(message)}`);
 
-    const onSuccess = (admins) => {
-      const length = admins.length;
-      let botMsg = '';
+    processMessage(bot, app.locals.mongoDriver.db, message)
+      .then(({ admins }) => {
+        const length = admins.length;
+        let botMsg = '';
 
-      if (length) {
-        botMsg = 'List admin yang terdaftar:\n';
+        if (length) {
+          botMsg = 'List admin yang terdaftar:\n';
 
-        // iterate to botMsg
-        admins.forEach((admin, i) => {
-          // Manually concat for each post
-          botMsg += `${i + 1}. ${admin}`;
+          // iterate to botMsg
+          admins.forEach((admin, i) => {
+            // Manually concat for each post
+            botMsg += `${i + 1}. ${admin}`;
 
-          // Add newline if it is not the last element
-          botMsg += (i + 1 < length) ? '\n' : '';
-        });
-      } else {
-        botMsg = 'Tidak ada admin yang terdaftar.';
-      }
+            // Add newline if it is not the last element
+            botMsg += (i + 1 < length) ? '\n' : '';
+          });
+        } else {
+          botMsg = 'Tidak ada admin yang terdaftar.';
+        }
 
-      bot.reply(message, botMsg);
-    };
-
-    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
+        bot.reply(message, botMsg);
+      }).catch(err => bot.reply(message, err));
   });
 
   // Set admin
   botController.hears(['!promote'], events, (bot, message) => {
     winstonInfo(`Message: ${JSON.stringify(message)}`);
 
-    const onSuccess = (success, username) => {
-      const botMsg = success ?
-        `Sukses menaikkan ${username} menjadi admin!` :
-        `Gagal menaikkan ${username} menjadi admin`;
+    processMessage(bot, app.locals.mongoDriver.db, message)
+      .then(({ username }) => {
+        const botMsg = `Sukses menaikkan ${username} menjadi admin!`;
 
-      bot.reply(message, botMsg);
-    };
-
-    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
+        bot.reply(message, botMsg);
+      }).catch(err => bot.reply(message, err));
   });
 
   botController.hears(['!demote'], events, (bot, message) => {
     winstonInfo(`Message: ${JSON.stringify(message)}`);
 
-    const onSuccess = (success, username) => {
-      const botMsg = success ?
-        `Sukses menurunkan ${username} dari jabatan admin!` :
-        `Gagal menurunkan ${username} dari jabatan admin.`;
+    processMessage(bot, app.locals.mongoDriver.db, message)
+      .then(({ username }) => {
+        const botMsg = `Sukses menurunkan ${username} dari jabatan admin!`;
 
-      bot.reply(message, botMsg);
-    };
-
-    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
+        bot.reply(message, botMsg);
+      }).catch(err => bot.reply(message, err));
   });
 
   // Get channels
   botController.hears(['!channels'], events, (bot, message) => {
     winstonInfo(`Message: ${JSON.stringify(message)}`);
 
-    const onSuccess = (channels) => {
-      const length = channels.length;
-      let botMsg = '';
+    processMessage(bot, app.locals.mongoDriver.db, message)
+      .then((channels) => {
+        const length = channels.length;
+        let botMsg = '';
 
-      if (length) {
-        botMsg = 'List public channels yang terdaftar untuk broadcast:\n';
+        if (length) {
+          botMsg = 'List public channels yang terdaftar untuk broadcast:\n';
 
-        // iterate to botMsg
-        channels.forEach((channel, i) => {
-          // Manually concat for each post
-          botMsg += `${i + 1}. ${channel}`;
+          // iterate to botMsg
+          channels.forEach((channel, i) => {
+            // Manually concat for each post
+            botMsg += `${i + 1}. ${channel}`;
 
-          // Add newline if it is not the last element
-          botMsg += (i + 1 < length) ? '\n' : '';
-        });
-      } else {
-        botMsg = 'Tidak ada public channel yang terdaftar untuk broadcast.';
-      }
+            // Add newline if it is not the last element
+            botMsg += (i + 1 < length) ? '\n' : '';
+          });
+        } else {
+          botMsg = 'Tidak ada public channel yang terdaftar untuk broadcast.';
+        }
 
-      bot.reply(message, botMsg);
-    };
-
-    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
+        bot.reply(message, botMsg);
+      }).catch(err => bot.reply(message, err));
   });
 
   // Set channel
   botController.hears(['!setbroadcast'], events, (bot, message) => {
     winstonInfo(`Message: ${JSON.stringify(message)}`);
 
-    const onSuccess = (success, channel, status) => {
-      const toggleText = status === '0' ? 'biasa' : 'broadcast';
-      const botMsg = success ?
-        `Sukses menjadikan channel ${channel} menjadi channel ${toggleText}!` :
-        `Gagal menjadikan channel ${channel} menjadi channel ${toggleText}.`;
+    processMessage(bot, app.locals.mongoDriver.db, message)
+      .then(({ channelName, broadcastStatus }) => {
+        const toggleText = broadcastStatus === '0' ? 'biasa' : 'broadcast';
+        const botMsg = `Sukses menjadikan channel ${channelName} menjadi channel ${toggleText}!`;
 
-      bot.reply(message, botMsg);
-    };
-
-    processMessage(bot, app.locals.mongoDriver.db, message, onSuccess);
+        bot.reply(message, botMsg);
+      }).catch(err => bot.reply(message, err));
   });
 } else {
   // Local/development mode

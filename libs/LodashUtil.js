@@ -1,9 +1,9 @@
-import _pick from 'lodash/pick';
-import _omit from 'lodash/omit';
+const pick = require('lodash/pick');
+const omit = require('lodash/omit');
 
 function destructureObject(object, pickedProps) {
-  const pickedObj = _pick(object, pickedProps);
-  const omittedObj = _omit(object, pickedProps);
+  const pickedObj = pick(object, pickedProps);
+  const omittedObj = omit(object, pickedProps);
 
   return Object.assign(pickedObj, { rest: omittedObj });
 }

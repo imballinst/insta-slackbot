@@ -10,16 +10,22 @@ const { getMedias } = require('../libs/InstagramQueries');
 const isProd = process.env.NODE_ENV === 'production';
 
 function insertMockData(db) {
-  return getMedias().then((response) => {
+  return getMedias().then((promiseArray) => {
     // Get recent medias
-    const json = JSON.parse(response);
-    const mediaArray = json.data.map((media) => {
+    const json1 = JSON.parse(promiseArray[0]);
+    const json2 = promiseArray[1] ?
+      JSON.parse(promiseArray[1]) : { pagination: {}, data: [], meta: { code: 200 } };
+
+    const mapMedia = data => data.map((media) => {
       const { id, created_time: createdTime } = media;
 
       return { id, created_time: new Date(moment.unix(parseInt(createdTime, 10)).toISOString()) };
     });
 
-    return db.collection('postedmedias').insertMany(mediaArray);
+    const mediaArray1 = mapMedia(json1.data);
+    const mediaArray2 = mapMedia(json2.data);
+
+    return db.collection('postedmedias').insertMany(mediaArray1.concat(mediaArray2));
   }).then((dbResponse) => {
     if (!dbResponse.result.ok) {
       throw new Error('Failed to mock "postedmedias" collection!');

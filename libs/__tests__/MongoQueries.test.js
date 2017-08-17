@@ -251,7 +251,7 @@ describe('MongoQueries Specific Components (libs/MongoQueries)', () => {
 
     for (let i = 0; i < 6; i++) {
       const curIterateTime = moment().subtract(i, 'days').toISOString();
-      ;
+
       insertedMediaMocks.push({ id: i, created_time: new Date(curIterateTime) });
       insertedAdmins.push({ user_id: `admin_${i}`, is_admin: 1 });
       insertedChannels.push({ channel_id: `channel_${i}`, is_broadcast: 1 });

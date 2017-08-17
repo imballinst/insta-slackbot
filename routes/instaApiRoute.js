@@ -13,20 +13,18 @@ app.post('/self', (req, res) => {
   const requestToken = req.body.token;
 
   if (requestToken === slackVerificationToken) {
-    const callback = (json) => {
-      res.send(JSON.stringify(json));
-    };
-
-    getSelfProfile(callback);
+    getSelfProfile()
+      .then((response) => {
+        res.send(JSON.stringify(response));
+      });
   } else {
     res.send('Token doesn\'t match!');
   }
 });
 
 app.get('/media/:mediaID', (req, res) => {
-  const callback = (json) => {
-    res.send(json);
-  };
-
-  getMediaById(req.params.mediaID, callback);
+  getMediaById(req.params.mediaID)
+    .then((response) => {
+      res.send(JSON.stringify(response));
+    });
 });

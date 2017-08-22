@@ -1,5 +1,15 @@
 const moment = require('moment');
 
+// Import variables
+const { specificHelpTexts } = require('./constants/HelpTexts');
+const validDateFormats = require('./constants/ValidVariables');
+const {
+  mediaCommandsList,
+  adminCommandsList,
+  commands,
+} = require('./constants/Commands');
+
+// Import functions
 const { getMedias } = require('./InstagramQueries');
 const {
   getListUsers,
@@ -14,151 +24,48 @@ const {
   setBroadcastChannel,
 } = require('./MongoQueries');
 
-// Media command help template because it's so common
-function helpTemplate(command, help, example) {
-  const header = `Panduan perintah *${command}*: \`!${command} [argumen]\`\n`;
-  const body = `Daftar argumen yang dapat digunakan:\n ${help}`;
-  const exampleText = example !== '' ? `Contoh penggunaan: ${example}\n` : '';
-
-  return header + body + exampleText;
-}
-
-// Specific command help
-const mediaArgs =
-  '\t• `--from`, `-f`: waktu awal dalam format *DD-MM-YYYY*. Contoh: `25-05-2015`. Default: awal minggu ini.\n' +
-  '\t• `--to`, `-t`: waktu akhir dalam format *DD-MM-YYYY*. Contoh: `25-05-2016`. Default: akhir minggu ini.\n';
-const sortParams = '\t• `--sort`, `-s`: urutan dalam format *field:order*. Contoh: `likes:asc`. Default: `time:asc`\n' +
-  '\t\t- *field*: atribut untuk diurutkan, diantaranya `likes`, `comments`, `time`, `tags`.\n' +
-  '\t\t- *order*: urutan hasil query, yaitu `asc` (kecil-besar) atau `desc` (besar-kecil).\n';
-
-const moteArgs = '\t• `--user`, `-u`: nama username. Contoh: `try.aji`\n';
-const setBroadcastArgs = '\t• `--channel`, `-c` (*wajib*): nama channel atau `~here`. Contoh: `general`. Default: `-`\n' +
-  '\t• `--broadcast`, `-b`: status broadcast untuk channel, `on` atau `off`. Contoh: `on`. Default: `on`\n';
-
-// Examples
-const cmdExamples = {
-  review: '`!review -f 25-05-2015 -t 25-05-2016 -s likes:asc` atau `!review --from 25-05-2015 --to 25-05-2016 --sort likes:asc`\n',
-  mostlikes: '`!mostlikes -f 25-05-2015 -t 25-05-2016` atau `!mostlikes --from 25-05-2015 --to 25-05-2016`\n',
-  countlikes: '`!countlikes -f 25-05-2015 -t 25-05-2016` atau `!countlikes --from 25-05-2015 --to 25-05-2016`\n',
-  help: '',
-  admins: '',
-  promote: '`!promote -u try.aji` atau `!promote --user try.aji`\n',
-  demote: '`!demote -u try.aji` atau `!demote --user try.aji`\n',
-  channels: '',
-  setbroadcast: '`!setbroadcast -c general -b on` atau `!setbroadcast --channel general --broadcast on`',
-};
-
-// Whole help command
-const commandHelps = {
-  review: helpTemplate('review', mediaArgs + sortParams, cmdExamples.review),
-  mostlikes: helpTemplate('mostlikes', mediaArgs, cmdExamples.mostlikes),
-  countlikes: helpTemplate('countlikes', mediaArgs, cmdExamples.countlikes),
-  help: 'Tidak diperlukan bantuan untuk perintah ini.\n',
-  admins: 'Tidak diperlukan bantuan untuk perintah ini.\n',
-  promote: helpTemplate('promote', moteArgs, cmdExamples.promote),
-  demote: helpTemplate('demote', moteArgs, cmdExamples.demote),
-  channels: 'Tidak diperlukan bantuan untuk perintah ini.\n',
-  setbroadcast: helpTemplate('setbroadcast', setBroadcastArgs, cmdExamples.setbroadcast),
-};
-
-// List of media commands
-const mediaCommands = [
-  'review', 'mostlikes', 'countlikes',
-];
-
-// List of administration commands
-const adminCommands = [
-  'admins', 'promote', 'demote', 'channels', 'setbroadcast',
-];
-
-// List of query parameters
-const queryParams = [
-  {
-    param: 'from',
-    prop: 'startDate',
-    shorthand: 'f',
-  },
-  {
-    param: 'to',
-    prop: 'endDate',
-    shorthand: 't',
-  },
-  {
-    param: 'sort',
-    prop: 'sort',
-    shorthand: 's',
-  },
-  {
-    param: 'user',
-    prop: 'user',
-    shorthand: 'u',
-  },
-  {
-    param: 'channel',
-    prop: 'channel',
-    shorthand: 'c',
-  },
-  {
-    param: 'broadcast',
-    prop: 'broadcast',
-    shorthand: 'b',
-  },
-];
-
 // Helper functions
-const isDateValid = string => moment(string, 'DD-MM-YYYY').isValid();
-const formatDatetime = momentObject => momentObject.format('dddd, Do MMMM YYYY');
+const isDateValid = string => moment(string, validDateFormats).isValid();
+const formatDatetime = string => moment(string, validDateFormats).format('dddd, Do MMMM YYYY');
 
 const parseMessage = (message) => {
   // Variables
-  const [command, ...args] = message.text.split(' ');
-  const commandString = command.replace(/[!]+/g, '');
+  const matchingCommand = commands.find(command => command.regex.test(message.match));
+  const command = matchingCommand.key;
+  const queries = {};
+  let type;
 
-  const parsedObject = { command: commandString };
+  if (matchingCommand && !message.text.includes('bantuan')) {
+    // Delete command text
+    const deletedCommandText = new RegExp(`${message.match}(\\s)*`, 'gi');
+    const commandParams = matchingCommand.params;
+    let remainingMsgText = message.text.replace(deletedCommandText, '');
 
-  // Classify message based on its arguments
-  const argumentLength = args.length;
+    // Iterate parameters
+    Object.keys(commandParams).forEach((param) => {
+      const matchingParam = commandParams[param][Symbol.match](remainingMsgText)[0];
+      const deletedParams = new RegExp(`${matchingParam}(\\s)*`, 'gi');
+      remainingMsgText = remainingMsgText.replace(deletedParams, '');
 
-  if (mediaCommands.includes(commandString) || adminCommands.includes(commandString)) {
-    if (args.includes('--help')) {
-      // Help message for a command
-      parsedObject.type = 'help';
-    } else if (argumentLength % 2 === 0) {
-      // Arguments are valid
-      parsedObject.type = 'query';
-      parsedObject.queries = {};
+      if (param === 'sort') {
+        const sortParams = matchingParam.split(' ', 3);
+        const sortField = sortParams[1];
+        const sortOrder = sortParams[2] === 'mengecil' ? 'desc' : 'asc';
 
-      const argsLength = args.length;
-      let valid = true;
-      let i = 0;
-
-      while (valid && i < argsLength) {
-        const key = args[i].replace(/[-]+/g, '');
-        const queryIndex = queryParams.findIndex(q => q.param === key || q.shorthand === key);
-
-        if (queryIndex !== -1) {
-          // For immutability
-          parsedObject.queries[queryParams[queryIndex].prop] = args[i + 1];
-        } else {
-          // If there is undefined query, set valid to false and reset the array
-          valid = false;
-
-          parsedObject.type = 'invalid';
-          parsedObject.queries = {};
-        }
-
-        i += 2;
+        queries[param] = `${sortField}:${sortOrder}`;
+      } else {
+        queries[param] = matchingParam.split(' ', 2)[1];
       }
-    } else {
-      // Invalid argument length
-      parsedObject.type = 'invalid';
-    }
+    });
+
+    type = 'query';
+  } else if (matchingCommand && message.text.includes('bantuan')) {
+    type = 'help';
   } else {
-    // Invalid command
-    parsedObject.type = 'invalid';
+    type = 'invalid';
   }
 
-  return parsedObject;
+  return { command, type, queries };
 };
 
 const getMediaQueryParams = (parsedObject) => {
@@ -187,10 +94,6 @@ const getMediaQueryParams = (parsedObject) => {
 
 const runMediaCommand = (db, queries) => {
   const params = getMediaQueryParams(queries);
-
-  const startDateFormat = formatDatetime(params.startDate);
-  const endDateFormat = formatDatetime(params.endDate);
-
   const promise = new Promise((resolve, reject) => {
     if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
       const getMediaFromDb = getMediasByTimerange(db, params);
@@ -208,31 +111,32 @@ const runMediaCommand = (db, queries) => {
       maxID = undefined,
       count = 0,
     } = data;
+    const startDateFormat = formatDatetime(params.startDate);
+    const endDateFormat = formatDatetime(params.endDate);
 
     if (success && count > 0) {
       // Get all medias except maxID
-      return getMedias(minID, maxID, count)
-        .then((promiseArray) => {
-          const { data: posts1, meta: meta1 } = JSON.parse(promiseArray[0]);
-          const { data: posts2, meta: meta2 } = JSON.parse(promiseArray[1]);
+      return getMedias(minID, maxID, count).then(([promiseArray1, promiseArray2]) => {
+        const { data: posts1, meta: meta1 } = JSON.parse(promiseArray1);
+        const { data: posts2, meta: meta2 } = JSON.parse(promiseArray2);
 
-          if (meta1.code === 200 && meta2.code === 200) {
-            // Success fetching from API
-            return {
-              posts: posts1.concat(posts2),
-              params: {
-                startDate: startDateFormat,
-                endDate: endDateFormat,
-                sort: params.sort,
-              },
-            };
-          } else if (meta1.code === 429 || meta2.code === 429) {
-            // Rate limit reached
-            throw new Error('Limit query tercapai. Silahkan tunggu beberapa saat lagi.');
-          } else {
-            throw new Error('Unexpected error.');
-          }
-        });
+        if (meta1.code === 200 && meta2.code === 200) {
+          // Success fetching from API
+          return {
+            posts: posts1.concat(posts2),
+            params: {
+              startDate: startDateFormat,
+              endDate: endDateFormat,
+              sort: params.sort,
+            },
+          };
+        } else if (meta1.code === 429 || meta2.code === 429) {
+          // Rate limit reached
+          throw new Error('Limit query tercapai. Silahkan tunggu beberapa saat lagi.');
+        } else {
+          throw new Error('Unexpected error.');
+        }
+      });
     }
 
     throw new Error(`Tidak ada post dari tanggal ${startDateFormat} hingga ${endDateFormat}.`);
@@ -345,7 +249,10 @@ const runAdministrationCommand = (db, command, message, queries) => {
             .filter(channel => mappedData.includes(channel.id))
             .map(channel => channel.name);
 
-          return filteredChannels;
+          if (filteredChannels.length) {
+            return { channels: filteredChannels };
+          }
+          throw new Error('Tidak ada channel yang terdaftar sebagai channel broadcast.');
         }
 
         throw new Error('Gagal fetch dari database. Silahkan coba lagi.');
@@ -353,13 +260,13 @@ const runAdministrationCommand = (db, command, message, queries) => {
 
       break;
     }
-    case 'setbroadcast': {
-      const broadcast = queries.broadcast;
+    case 'activate':
+    case 'deactivate': {
       let channelName = queries.channel;
 
       const channelsPromise = new Promise((resolve, reject) => {
         if (channelName) {
-          const broadcastStatus = broadcast === 'off' ? 0 : 1;
+          const broadcastStatus = command === 'activate' ? 1 : 0;
 
           getListChannels().then((apiResponse) => {
             resolve({
@@ -417,7 +324,7 @@ const runAdministrationCommand = (db, command, message, queries) => {
   return returnPromise;
 };
 
-const processMessage = (bot, db, message) => getAdminById(db, message.user)
+const processMessage = (db, message) => getAdminById(db, message.user)
   .then((response) => {
     if (response.data.length) {
       let returnedObject;
@@ -429,22 +336,17 @@ const processMessage = (bot, db, message) => getAdminById(db, message.user)
           throw new Error('Perintah tidak valid. Cek kembali masukan perintah Anda!');
         }
         case 'help': {
-          returnedObject = {
-            success: true,
-            data: {
-              message: commandHelps[command],
-            },
-          };
+          returnedObject = { helpText: specificHelpTexts[command] };
 
           break;
         }
         case 'query': {
-          if (mediaCommands.includes(command)) {
+          if (mediaCommandsList.includes(command)) {
             returnedObject = runMediaCommand(db, queries);
-          } else if (adminCommands.includes(command)) {
+          } else if (adminCommandsList.includes(command)) {
             returnedObject = runAdministrationCommand(db, command, message, queries);
           } else {
-            throw new Error('Perintah tidak teridentifikasi');
+            throw new Error('Perintah tidak teridentifikasi.');
           }
 
           break;
@@ -454,6 +356,7 @@ const processMessage = (bot, db, message) => getAdminById(db, message.user)
 
       return returnedObject;
     }
+
     throw new Error('Anda bukan admin!');
   });
 
@@ -493,7 +396,6 @@ function batchReply(bot, messageObj, posts, currentIndex) {
 
 module.exports = {
   batchReply,
-  commandHelps,
   formatDatetime,
   getMediaQueryParams,
   isDateValid,

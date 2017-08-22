@@ -34,7 +34,7 @@ const parseMessage = (message) => {
   const command = matchingCommand.key;
   const queries = {};
   let type;
-
+  console.log(matchingCommand);
   if (matchingCommand && !message.text.includes('bantuan')) {
     // Delete command text
     const deletedCommandText = new RegExp(`${message.match}(\\s)*`, 'gi');
@@ -43,18 +43,28 @@ const parseMessage = (message) => {
 
     // Iterate parameters
     Object.keys(commandParams).forEach((param) => {
-      const matchingParam = commandParams[param][Symbol.match](remainingMsgText)[0];
-      const deletedParams = new RegExp(`${matchingParam}(\\s)*`, 'gi');
-      remainingMsgText = remainingMsgText.replace(deletedParams, '');
+      if (remainingMsgText !== '') {
+        const regexMatch = commandParams[param][Symbol.match](remainingMsgText);
 
-      if (param === 'sort') {
-        const sortParams = matchingParam.split(' ', 3);
-        const sortField = sortParams[1];
-        const sortOrder = sortParams[2] === 'mengecil' ? 'desc' : 'asc';
+        if (regexMatch) {
+          const matchingParam = regexMatch[0];
+          console.log(matchingParam);
+          const deletedParams = new RegExp(`${matchingParam}(\\s)*`, 'gi');
 
-        queries[param] = `${sortField}:${sortOrder}`;
-      } else {
-        queries[param] = matchingParam.split(' ', 2)[1];
+          remainingMsgText = remainingMsgText.replace(deletedParams, '');
+
+          if (param === 'sort') {
+            const sortParams = matchingParam.split(' ', 3);
+            const sortField = sortParams[1];
+            const sortOrder = sortParams[2] === 'mengecil' ? 'desc' : 'asc';
+
+            queries[param] = `${sortField}:${sortOrder}`;
+          } else {
+            queries[param] = matchingParam.split(' ', 2)[1];
+          }
+        } else {
+          throw new Error('Parameter perintah kurang atau salah.');
+        }
       }
     });
 
@@ -336,7 +346,12 @@ const processMessage = (db, message) => getAdminById(db, message.user)
           throw new Error('Perintah tidak valid. Cek kembali masukan perintah Anda!');
         }
         case 'help': {
-          returnedObject = { helpText: specificHelpTexts[command] };
+          console.log(specificHelpTexts[command]);
+          if (specificHelpTexts[command] !== '') {
+            returnedObject = { helpText: specificHelpTexts[command] };
+          } else {
+            throw new Error(`Perintah ${message.match} tidak memerlukan bantuan!'`);
+          }
 
           break;
         }

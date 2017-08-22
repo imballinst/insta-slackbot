@@ -2,7 +2,8 @@ import moment from 'moment';
 
 import validDateFormats from '../constants/ValidVariables';
 import {
-  formatDatetime,
+  formatShortDate,
+  formatLongDate,
   getMediaQueryParams,
   isDateValid,
   parseMessage,
@@ -205,9 +206,25 @@ describe('MessageUtil component, the rest (libs/MessageUtil)', () => {
 
     const expectedDate = 'Senin, 25 Mei 2015';
 
-    const formattedDate1 = formatDatetime(date1);
-    const formattedDate2 = formatDatetime(date2);
-    const formattedDate3 = formatDatetime(date3);
+    const formattedDate1 = formatLongDate(date1);
+    const formattedDate2 = formatLongDate(date2);
+    const formattedDate3 = formatLongDate(date3);
+
+    expect(formattedDate1).toBe(expectedDate);
+    expect(formattedDate2).toBe(expectedDate);
+    expect(formattedDate3).toBe(expectedDate);
+  });
+
+  it('should convert to the short date format', () => {
+    const date1 = '25-05-2015';
+    const date2 = '25/05/2015';
+    const date3 = '25 Mei 2015';
+
+    const expectedDate = '25-05-2015';
+
+    const formattedDate1 = formatShortDate(date1);
+    const formattedDate2 = formatShortDate(date2);
+    const formattedDate3 = formatShortDate(date3);
 
     expect(formattedDate1).toBe(expectedDate);
     expect(formattedDate2).toBe(expectedDate);
@@ -220,8 +237,8 @@ describe('MessageUtil component, the rest (libs/MessageUtil)', () => {
 
     const expectedDate = 'Senin, 25 Mei 2015';
 
-    const formattedDate1 = formatDatetime(moment(date1, validDateFormats));
-    const formattedDate2 = formatDatetime(moment(date2, validDateFormats));
+    const formattedDate1 = formatLongDate(moment(date1, validDateFormats));
+    const formattedDate2 = formatLongDate(moment(date2, validDateFormats));
 
     expect(formattedDate1).toBe(expectedDate);
     expect(formattedDate2).toBe('Invalid date');

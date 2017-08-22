@@ -26,7 +26,8 @@ const {
 
 // Helper functions
 const isDateValid = string => moment(string, validDateFormats).isValid();
-const formatDatetime = string => moment(string, validDateFormats).format('dddd, Do MMMM YYYY');
+const formatLongDate = string => moment(string, validDateFormats).format('dddd, Do MMMM YYYY');
+const formatShortDate = string => moment(string, validDateFormats).format('DD-MM-YYYY');
 
 const parseMessage = (message) => {
   // Variables
@@ -59,7 +60,7 @@ const parseMessage = (message) => {
 
             queries[param] = `${sortField}:${sortOrder}`;
           } else {
-            queries[param] = matchingParam.split(' ', 2)[1];
+            queries[param] = matchingParam.substr(matchingParam.indexOf(' ') + 1);
           }
         } else {
           throw new Error('Parameter perintah kurang atau salah.');
@@ -92,13 +93,12 @@ const getMediaQueryParams = (parsedObject) => {
     .endOf('week')
     .format('DD-MM-YYYY');
 
-  const {
-    startDate = defaultStartDate,
-    endDate = defaultEndDate,
-    sort,
-  } = parsedObject;
+  const { startDate, endDate, sort } = parsedObject;
 
-  return { startDate, endDate, sort };
+  const newStartDate = isDateValid(startDate) ? formatShortDate(startDate) : defaultStartDate;
+  const newEndDate = isDateValid(endDate) ? formatShortDate(endDate) : defaultEndDate;
+
+  return { startDate: newStartDate, endDate: newEndDate, sort };
 };
 
 const runMediaCommand = (db, queries) => {
@@ -120,8 +120,8 @@ const runMediaCommand = (db, queries) => {
       maxID = undefined,
       count = 0,
     } = data;
-    const startDateFormat = formatDatetime(params.startDate);
-    const endDateFormat = formatDatetime(params.endDate);
+    const startDateFormat = formatLongDate(params.startDate);
+    const endDateFormat = formatLongDate(params.endDate);
 
     if (success && count > 0) {
       // Get all medias except maxID
@@ -130,9 +130,11 @@ const runMediaCommand = (db, queries) => {
         const { data: posts2, meta: meta2 } = JSON.parse(promiseArray2);
 
         if (meta1.code === 200 && meta2.code === 200) {
+          const posts = posts2.length ? posts1.concat(posts2) : [posts1];
+
           // Success fetching from API
           return {
-            posts: posts1.concat(posts2),
+            posts,
             params: {
               startDate: startDateFormat,
               endDate: endDateFormat,
@@ -310,10 +312,7 @@ const runAdministrationCommand = (db, command, message, queries) => {
               const success = dbResponse.success;
 
               if (success) {
-                return {
-                  channelName,
-                  broadcastStatus,
-                };
+                return { channelName };
               }
 
               throw new Error('Gagal memasukkan ke database. Silahkan coba lagi.');
@@ -385,7 +384,7 @@ function batchReply(bot, messageObj, posts, currentIndex) {
       tags,
     } = posts[currentIndex];
 
-    const createdAt = `*${formatDatetime(moment.unix(date))}*`;
+    const createdAt = `*${formatLongDate(moment.unix(date))}*`;
     const tagsText = tags.length > 0 ? `*Tags*: _${tags.join(',')}_.\n` : '';
     const captionText = caption !== '' ? `${caption}\n\n` : '';
     const nextIndex = currentIndex + 1;
@@ -409,7 +408,8 @@ function batchReply(bot, messageObj, posts, currentIndex) {
 
 module.exports = {
   batchReply,
-  formatDatetime,
+  formatShortDate,
+  formatLongDate,
   getMediaQueryParams,
   isDateValid,
   parseMessage,

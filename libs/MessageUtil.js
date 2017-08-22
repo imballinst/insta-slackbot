@@ -34,7 +34,7 @@ const parseMessage = (message) => {
   const command = matchingCommand.key;
   const queries = {};
   let type;
-  console.log(matchingCommand);
+
   if (matchingCommand && !message.text.includes('bantuan')) {
     // Delete command text
     const deletedCommandText = new RegExp(`${message.match}(\\s)*`, 'gi');
@@ -48,7 +48,6 @@ const parseMessage = (message) => {
 
         if (regexMatch) {
           const matchingParam = regexMatch[0];
-          console.log(matchingParam);
           const deletedParams = new RegExp(`${matchingParam}(\\s)*`, 'gi');
 
           remainingMsgText = remainingMsgText.replace(deletedParams, '');
@@ -346,7 +345,6 @@ const processMessage = (db, message) => getAdminById(db, message.user)
           throw new Error('Perintah tidak valid. Cek kembali masukan perintah Anda!');
         }
         case 'help': {
-          console.log(specificHelpTexts[command]);
           if (specificHelpTexts[command] !== '') {
             returnedObject = { helpText: specificHelpTexts[command] };
           } else {

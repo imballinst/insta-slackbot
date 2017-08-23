@@ -386,13 +386,13 @@ function batchReply(bot, messageObj, posts, currentIndex) {
 
     const createdAt = `*${formatLongDate(moment.unix(date))}*`;
     const tagsText = tags.length > 0 ? `*Tags*: _${tags.join(',')}_.\n` : '';
-    const captionText = caption !== '' ? `${caption}\n\n` : '';
+    const captionText = caption !== '' ? `${caption.text}\n\n` : '';
     const nextIndex = currentIndex + 1;
     let botMsg = '';
 
     // Manually concat for each post
-    botMsg += `${currentIndex + 1}. ${link} (${createdAt}) - *${likes}* likes\n\n`;
-    botMsg += `${captionText} ${tagsText} *Comments count*: ${comments}.`;
+    botMsg += `${currentIndex + 1}. ${link} (${createdAt}) - *${likes.count}* likes\n\n`;
+    botMsg += `${captionText} ${tagsText} *Comments count*: ${comments.count}.`;
 
     bot.reply(messageObj, botMsg, (err) => {
       if (!err) {

@@ -19,7 +19,6 @@ function getMediaById(mediaID) {
     path: `/v1/media/${mediaID}?${getMediaString}`,
     method: 'GET',
   };
-
   // Send request
   return httpsRequest(options, undefined);
 }
@@ -43,35 +42,19 @@ function getMedias(minID, maxID, count) {
     method: 'GET',
   };
 
-  const mediaMaxID = maxID ? getMediaById(maxID) : undefined;
+  const medias = count > 1 ?
+    httpsRequest(options, undefined) : getMediaById(maxID);
+  const mediaMaxID = maxID && count > 1 ?
+    getMediaById(maxID) : '{ "data": [], "meta": { "code": 200 }}';
 
   // Send request
   return Promise.all([
-    httpsRequest(options, undefined),
+    medias,
     mediaMaxID,
   ]);
-}
-
-function getFollowers() {
-  // JSON Object of POST data
-  const getFollowersJSON = {
-    access_token: instaAccessToken,
-  };
-
-  // Stringify JSON and set header options
-  const getFollowersString = querystring.stringify(getFollowersJSON);
-  const options = {
-    hostname: 'api.instagram.com',
-    path: `/v1/users/self/followed-by/?${getFollowersString}`,
-    method: 'GET',
-  };
-
-  // Send request
-  return httpsRequest(options, undefined);
 }
 
 module.exports = {
   getMediaById,
   getMedias,
-  getFollowers,
 };

@@ -63,6 +63,8 @@ describe('MongoQueries Generic Components (libs/MongoQueries)', () => {
 
       expect(success).toBe(true);
       expect(data).toEqual({ n: 1 });
+    }).catch(err => {
+      expect(err).toEqual(undefined);
     });
   });
 
@@ -79,6 +81,8 @@ describe('MongoQueries Generic Components (libs/MongoQueries)', () => {
 
       expect(success).toBe(true);
       expect(data).toEqual({ n: 4 });
+    }).catch(err => {
+      expect(err).toEqual(undefined);
     });
   });
 
@@ -102,8 +106,9 @@ describe('MongoQueries Generic Components (libs/MongoQueries)', () => {
 
       expect(successFindMany).toBe(true);
       expect(dataFindMany.length).toEqual(3);
-    })
-    ;
+    }).catch(err => {
+      expect(err).toEqual(undefined);
+    });
   });
 
   /**
@@ -128,6 +133,8 @@ describe('MongoQueries Generic Components (libs/MongoQueries)', () => {
 
       expect(success).toBe(true);
       expect(data).toEqual({ n: 1, nModified: 1 });
+    }).catch(err => {
+      expect(err).toEqual(undefined);
     });
   });
 
@@ -150,6 +157,8 @@ describe('MongoQueries Generic Components (libs/MongoQueries)', () => {
 
       expect(success).toBe(true);
       expect(data).toEqual({ n: 3, nModified: 3 });
+    }).catch(err => {
+      expect(err).toEqual(undefined);
     });
   });
 
@@ -166,6 +175,8 @@ describe('MongoQueries Generic Components (libs/MongoQueries)', () => {
 
       expect(success).toBe(true);
       expect(data).toEqual({ n: 1 });
+    }).catch(err => {
+      expect(err).toEqual(undefined);
     });
   });
 
@@ -179,6 +190,8 @@ describe('MongoQueries Generic Components (libs/MongoQueries)', () => {
 
       expect(success).toBe(true);
       expect(data).toEqual({ n: 3 });
+    }).catch(err => {
+      expect(err).toEqual(undefined);
     });
   });
 
@@ -204,6 +217,8 @@ describe('MongoQueries Generic Components (libs/MongoQueries)', () => {
       expect(success).toBe(true);
       expect(data.value.a).toBe('test update many 2');
       expect(data.value.b).toBe(1);
+    }).catch(err => {
+      expect(err).toEqual(undefined);
     });
   });
 
@@ -222,6 +237,8 @@ describe('MongoQueries Generic Components (libs/MongoQueries)', () => {
       expect(success).toBe(true);
       expect(data.value.a).toBe('test update many 2');
       expect(data.value.b).toBe(5);
+    }).catch(err => {
+      expect(err).toEqual(undefined);
     });
   });
 
@@ -236,6 +253,8 @@ describe('MongoQueries Generic Components (libs/MongoQueries)', () => {
       expect(success).toBe(true);
       expect(data.value.a).toBe('test update many 2');
       expect(data.value.b).toBe(15);
+    }).catch(err => {
+      expect(err).toEqual(undefined);
     });
   });
 });
@@ -290,6 +309,8 @@ describe('MongoQueries Specific Components (libs/MongoQueries)', () => {
         expect(data.minID).toBe(3);
         expect(data.maxID).toBe(1);
         expect(data.count).toBe(3);
+      }).catch(err => {
+        expect(err).toEqual(undefined);
       });
   });
 
@@ -301,6 +322,8 @@ describe('MongoQueries Specific Components (libs/MongoQueries)', () => {
 
         expect(success).toBe(true);
         expect(data.length).toBe(6);
+      }).catch(err => {
+        expect(err).toEqual(undefined);
       });
   });
 
@@ -316,6 +339,8 @@ describe('MongoQueries Specific Components (libs/MongoQueries)', () => {
           user_id: 'admin_3',
           is_admin: 1,
         });
+      }).catch(err => {
+        expect(err).toEqual(undefined);
       });
   });
 
@@ -327,6 +352,8 @@ describe('MongoQueries Specific Components (libs/MongoQueries)', () => {
 
         expect(success).toBe(true);
         expect(data.length).toBe(6);
+      }).catch(err => {
+        expect(err).toEqual(undefined);
       });
   });
 
@@ -336,12 +363,12 @@ describe('MongoQueries Specific Components (libs/MongoQueries)', () => {
   it('should deactivate a channel', () => {
     return dbPromise
       .then(db => {
-        setBroadcastChannel(db, 'channel_0', 0)
+        return setBroadcastChannel(db, 'channel_0', 0)
           .then(dbResponse => {
             expect(dbResponse.success).toBe(true);
           })
           .then(() => {
-            getChannels(db)
+            return getChannels(db)
               .then(dbResponse => {
                 const { success, data } = dbResponse;
 
@@ -349,18 +376,20 @@ describe('MongoQueries Specific Components (libs/MongoQueries)', () => {
                 expect(data.length).toBe(5);
               });
           });
+      }).catch(err => {
+        expect(err).toEqual(undefined);
       });
   });
 
   it('should deactivate an admin', () => {
     return dbPromise
       .then(db => {
-        setAdmin(db, 'admin_0', 0)
+        return setAdmin(db, 'admin_0', 0)
           .then(dbResponse => {
             expect(dbResponse.success).toBe(true);
           })
           .then(() => {
-            getAdmins(db)
+            return getAdmins(db)
               .then(dbResponse => {
                 const { success, data } = dbResponse;
 
@@ -368,6 +397,8 @@ describe('MongoQueries Specific Components (libs/MongoQueries)', () => {
                 expect(data.length).toBe(5);
               });
           });
+      }).catch(err => {
+        expect(err).toEqual(undefined);
       });
   });
 });

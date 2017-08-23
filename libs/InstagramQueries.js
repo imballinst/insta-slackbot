@@ -42,7 +42,7 @@ function getMedias(minID, maxID, count) {
     method: 'GET',
   };
 
-  const medias = count > 1 ?
+  const medias = count > 1 || !count ?
     httpsRequest(options, undefined) : getMediaById(maxID);
   const mediaMaxID = maxID && count > 1 ?
     getMediaById(maxID) : '{ "data": [], "meta": { "code": 200 }}';

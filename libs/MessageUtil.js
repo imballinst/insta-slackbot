@@ -130,7 +130,7 @@ const runMediaCommand = (db, queries) => {
         const { data: posts2, meta: meta2 } = JSON.parse(promiseArray2);
 
         if (meta1.code === 200 && meta2.code === 200) {
-          const posts = posts2.length ? posts1.concat(posts2) : [posts1];
+          const posts = posts2.length ? posts1.concat(posts2) : posts1;
 
           // Success fetching from API
           return {
@@ -303,7 +303,11 @@ const runAdministrationCommand = (db, command, message, queries) => {
             channelName = '[ini]';
           } else {
             const channels = listChannelsResponse.channels;
-            channelID = channels.find(channel => channelName === channel.name).id;
+            const channelObj = channels.find(channel => channelName === channel.name);
+
+            if (channelObj) {
+              channelID = channelObj.id;
+            }
           }
 
           if (channelID) {
@@ -318,7 +322,8 @@ const runAdministrationCommand = (db, command, message, queries) => {
               throw new Error('Gagal memasukkan ke database. Silahkan coba lagi.');
             });
           }
-          throw new Error('Channel tidak ditemukan. Pastikan channel tersebut public.');
+
+          throw new Error('Channel tidak ditemukan. Pastikan channel tersebut public/ada.');
         } else {
           throw new Error(listChannelsResponse.error);
         }

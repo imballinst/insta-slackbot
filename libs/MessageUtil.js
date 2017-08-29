@@ -120,6 +120,7 @@ const runMediaCommand = (db, queries) => {
       maxID = undefined,
       count = 0,
     } = data;
+
     const startDateFormat = formatLongDate(params.startDate);
     const endDateFormat = formatLongDate(params.endDate);
 
@@ -130,7 +131,8 @@ const runMediaCommand = (db, queries) => {
         const { data: posts2, meta: meta2 } = JSON.parse(promiseArray2);
 
         if (meta1.code === 200 && meta2.code === 200) {
-          const posts = posts2.length ? posts1.concat(posts2) : posts1;
+          const posts1Array = Array.isArray(posts1) ? posts1 : [posts1];
+          const posts = posts2 ? posts1.concat(posts2) : posts1Array;
 
           // Success fetching from API
           return {
@@ -389,7 +391,7 @@ function batchReply(bot, messageObj, posts, currentIndex) {
       tags,
     } = posts[currentIndex];
 
-    const createdAt = `*${formatLongDate(moment.unix(date))}*`;
+    const createdAt = `*${moment.unix(date).format('dddd, Do MMMM YYYY')}*`;
     const tagsText = tags.length > 0 ? `*Tags*: _${tags.join(',')}_.\n` : '';
     const captionText = caption !== '' ? `${caption.text}\n\n` : '';
     const nextIndex = currentIndex + 1;

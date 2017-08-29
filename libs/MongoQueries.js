@@ -129,8 +129,10 @@ function findOneAndDelete(db, collection, queryParams, options) {
  */
 function getMediasByTimerange(db, params) {
   const { startDate, endDate } = params;
-  const startDateMoment = moment(startDate, 'DD-MM-YYYY').utcOffset(420);
-  const endDateMoment = moment(endDate, 'DD-MM-YYYY').utcOffset(420);
+  // TODO: edit this
+  const offset = moment().utcOffset();
+  const startDateMoment = moment(startDate, 'DD-MM-YYYY').add(offset, 'm').toISOString();
+  const endDateMoment = moment(endDate, 'DD-MM-YYYY').add(offset, 'm').toISOString();
 
   const collection = 'postedmedias';
   const queryParams = {

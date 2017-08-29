@@ -56,10 +56,11 @@ if (isProd) {
         // If media exists
         const { id, created_time: createdTime, link, caption } = data;
         const text = caption ? `\n\n"${caption.text}"` : '';
+        const currentTZ = moment.unix(parseInt(createdTime, 10)).toISOString();
 
         app.locals.mongoDriver.db.collection('postedmedias').insertOne({
           id,
-          created_time: new Date(moment.unix(parseInt(createdTime, 10)).toISOString()),
+          created_time: new Date(currentTZ),
         });
 
         res.send();

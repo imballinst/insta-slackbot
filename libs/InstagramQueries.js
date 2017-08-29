@@ -31,7 +31,7 @@ function getMedias(minID, maxID, count) {
     min_id: minID,
     // excludes media with maxID
     max_id: maxID,
-    count,
+    count: count > 1 ? count - 1 : count,
   };
 
   // Stringify JSON and set header options

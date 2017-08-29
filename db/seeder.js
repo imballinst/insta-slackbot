@@ -17,8 +17,9 @@ function insertMockData(db) {
 
     const mediaArray1 = medias.data.map((media) => {
       const { id, created_time: createdTime } = media;
+      const currentTZ = moment.unix(parseInt(createdTime, 10)).toISOString();
 
-      return { id, created_time: new Date(moment.unix(parseInt(createdTime, 10)).toISOString()) };
+      return { id, created_time: new Date(currentTZ) };
     });
 
     return db.collection('postedmedias').insertMany(mediaArray1.concat(mediaMaxID));

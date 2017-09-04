@@ -132,7 +132,7 @@ const runMediaCommand = (db, queries) => {
 
         if (meta1.code === 200 && meta2.code === 200) {
           const posts1Array = Array.isArray(posts1) ? posts1 : [posts1];
-          const posts = posts2 ? posts1.concat(posts2) : posts1Array;
+          const posts = posts2 ? posts1Array.concat(posts2) : posts1Array;
 
           // Success fetching from API
           return {

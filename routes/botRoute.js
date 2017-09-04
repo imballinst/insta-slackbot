@@ -157,7 +157,7 @@ if (isProd) {
 
       if (!helpText) {
         const { startDate, endDate } = params;
-        const totalLikes = `*${posts.reduce((sum, val) => sum + val.likes, 0)}*`;
+        const totalLikes = `*${posts.reduce((sum, val) => sum + val.likes.count, 0)}*`;
 
         botMsg = `Total post likes count dari ${startDate} hingga ${endDate} ada ${totalLikes}.`;
       } else {
@@ -191,8 +191,8 @@ if (isProd) {
             comments,
           } = curDoc;
 
-          if (likes >= maxLikes) {
-            if (likes > maxLikes) { mostLikedPosts = []; }
+          if (likes.count >= maxLikes) {
+            if (likes.count > maxLikes) { mostLikedPosts = []; }
 
             // For immutability
             mostLikedPosts = mostLikedPosts.concat({
@@ -206,7 +206,7 @@ if (isProd) {
           }
 
           // Return the maximum number of likes
-          return Math.max(maxLikes, curDoc.likes);
+          return Math.max(maxLikes, likes.count);
         }, -Infinity);
 
         bot.reply(

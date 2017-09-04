@@ -7,15 +7,16 @@ function replaceAccessToken(token) {
       throw readFileErr;
     }
 
-    const arrayOfEnvVariables = data.split('\n');
+    const array = data.split('\n');
+    const varIndex = array.findIndex(envVar => envVar.includes('INSTAGRAM_ACCESS_TOKEN'));
 
     // Access token is line #6, therefore it's array #5
-    const indexOfEqualSymbol = arrayOfEnvVariables[5].indexOf('=');
-    const newTokenValue = `${arrayOfEnvVariables[5].substr(0, indexOfEqualSymbol)}=${token}`;
-    arrayOfEnvVariables[5] = newTokenValue;
+    const indexOfEqualSymbol = array[varIndex].indexOf('=');
+    const newTokenValue = `${array[varIndex].substr(0, indexOfEqualSymbol)}=${token}`;
+    array[varIndex] = newTokenValue;
 
     // Convert array to string
-    const newEnvironmentVariables = arrayOfEnvVariables.join('\n');
+    const newEnvironmentVariables = array.join('\n');
 
     fs.writeFile('.env', newEnvironmentVariables, 'utf-8', (writeFileErr) => {
       if (writeFileErr) {

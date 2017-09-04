@@ -5,12 +5,8 @@ require('dotenv').config();
 const http = require('http');
 
 const app = require('../app');
-const LogUtil = require('../libs/LogUtil');
 const MongoDriver = require('../libs/MongoDriver');
-
-// Set MongoDriver as locals in app
-app.locals.mongoDriver = MongoDriver;
-app.locals.mongoDriver.openDBConnection();
+const winstonInfo = require('../libs/LogUtil').winstonInfo;
 
 // Routes
 require('../routes/indexRoute');
@@ -21,10 +17,14 @@ require('../routes/slackApiRoute');
 require('../routes/botRoute');
 require('../routes/errorRoute');
 
-// Server and Port
-const server = new http.Server(app);
-const portApp = (process.env.PORT) || 3001;
+// Set MongoDriver as locals in app
+app.locals.mongoDriver = MongoDriver;
+app.locals.mongoDriver.openDBConnection().then(() => {
+  // Server and Port
+  const server = new http.Server(app);
+  const portApp = (process.env.PORT) || 3001;
 
-server.listen(portApp, () => {
-  LogUtil.winston.log('info', `Listening on port ${portApp}!`);
+  server.listen(portApp, () => {
+    winstonInfo(`Listening on port ${portApp}!`);
+  });
 });

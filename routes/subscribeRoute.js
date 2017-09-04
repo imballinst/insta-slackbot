@@ -35,12 +35,11 @@ app.get('/create-sub', (_, res) => {
     },
   };
 
-  const callback = (json) => {
-    res.send(json);
-  };
-
   // Send request
-  httpsRequest(options, subscribeString, callback);
+  httpsRequest(options, subscribeString)
+    .then((response) => {
+      res.send(response);
+    });
 });
 
 // Callback URL
@@ -65,9 +64,8 @@ app.get('/list-sub', (req, res) => {
     method: 'GET',
   };
 
-  const callback = (json) => {
-    res.send(json);
-  };
-
-  httpsRequest(options, undefined, callback);
+  httpsRequest(options, undefined)
+    .then((response) => {
+      res.send(response);
+    });
 });

@@ -1,34 +1,36 @@
 // Import modules
-const LogUtil = require('./LogUtil');
-const MongoClient = require('mongodb').MongoClient;
+const winstonInfo = require('./LogUtil').winstonInfo;
+const Promise = require('bluebird');
+const MongoClient = Promise.promisifyAll(require('mongodb').MongoClient);
 
-const mongoURL = process.env.MONGO_URL;
-const mongoDatabase = process.env.MONGO_DATABASE;
+const { NODE_ENV, MONGO_URL, MONGO_DATABASE, MONGO_TEST_DATABASE } = process.env;
+
+const isTestEnv = NODE_ENV === 'test';
+const mongoDatabase = !isTestEnv ? MONGO_DATABASE : MONGO_TEST_DATABASE;
 
 // Connection URL
-const url = `${mongoURL}/${mongoDatabase}`;
+const url = `${MONGO_URL}/${mongoDatabase}`;
 
 const MongoDriver = {
   db: null,
-  openDBConnection(callback) {
+  openDBConnection() {
     const that = this;
-    that.closeDBConnection = that.closeDBConnection.bind(that);
+    const connectPromise = MongoClient.connect(url);
 
-    MongoClient.connect(url, (err, db) => {
-      // This disini udah bukan MongoDriver lagi, soalnya udah masuk konteks callback
-      if (err) {
-        LogUtil.winston.log('error', `Error happened when connecting to database: ${err}.`);
-      } else {
-        LogUtil.winston.log('info', 'Connected to MongoDB server successfully!');
+    return connectPromise.then((db) => {
+      if (db) {
+        winstonInfo('Connected to MongoDB server successfully!');
 
         that.db = db;
-        if (typeof callback === 'function') {
-          callback(db);
-        }
+
+        return db;
       }
+      throw new Error('Failed to connect to MongoDB');
     });
   },
   closeDBConnection() {
+    winstonInfo('Attempting to close MongoDB connection...');
+
     this.db.close();
   },
 };

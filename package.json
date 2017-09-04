@@ -5,22 +5,26 @@
   "main": "index.js",
   "scripts": {
     "test": "jest && npm run eslint",
+    "jest": "jest",
     "start": "pm2 start ecosystem.config.js",
     "restart": "pm2 restart insta-slackbot",
     "stop": "pm2 stop insta-slackbot --watch",
     "delete": "pm2 delete insta-slackbot",
     "log": "pm2 logs insta-slackbot",
     "show": "pm2 show insta-slackbot",
-    "eslint": "./node_modules/.bin/eslint --fix ./libs/*.js ./app.js ./bin/www ./routes/*.js",
-    "seed": "node ./db/DatabaseSeeder.js",
+    "eslint": "./node_modules/.bin/eslint --fix ./libs/*.js ./db/seeder.js ./app.js ./bin/www ./routes/*.js",
+    "seed": "node ./db/seeder.js",
     "release:major": "changelog -M && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version major && git push origin && git push origin --tags",
     "release:minor": "changelog -m && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version minor && git push origin && git push origin --tags",
     "release:patch": "changelog -p && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version patch && git push origin && git push origin --tags"
   },
   "jest": {
-    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(js)$",
+    "testRegex": "/__tests__/.*.test.js",
     "moduleFileExtensions": [
       "js"
+    ],
+    "setupFiles": [
+      "./libs/__tests__/setup/config.js"
     ]
   },
   "precommit": "test",
@@ -40,6 +44,7 @@
   },
   "homepage": "https://github.com/Imballinst/insta-slackbot#readme",
   "dependencies": {
+    "bluebird": "^3.5.0",
     "body-parser": "^1.17.1",
     "botkit": "^0.5.4",
     "cron": "^1.2.1",

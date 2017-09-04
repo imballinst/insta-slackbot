@@ -1,44 +1,42 @@
 const https = require('https');
+const Promise = require('bluebird');
 
-const LogUtil = require('../libs/LogUtil');
+const winstonInfo = require('../libs/LogUtil').winstonInfo;
 
-function httpsRequest(options, data, callback) {
-  const req = https.request(options, (res) => {
-    LogUtil.winston.log('info', `STATUS: ${res.statusCode}`);
-    LogUtil.winston.log('info', `HEADERS: ${res.headers}`);
+function httpsRequest(options, data) {
+  const requestPromise = new Promise((resolve, reject) => {
+    const req = https.request(options, (res) => {
+      winstonInfo(`STATUS: ${res.statusCode}`);
+      winstonInfo(`HEADERS: ${res.headers}`);
 
-    // Set response encoding
-    res.setEncoding('utf8');
+      // Set response encoding
+      res.setEncoding('utf8');
 
-    // On response send data
-    let allData = '';
-    res.on('data', (chunk) => {
-      // LogUtil.winston.log('info', `BODY: ${chunk}`);
+      // On response send data
+      let allData = '';
+      res.on('data', (chunk) => {
+        allData += chunk;
+      });
 
-      allData += chunk;
+      // On response end
+      res.on('end', () => {
+        winstonInfo('No more data in response.');
+
+        resolve(allData);
+      });
     });
 
-    // On response end
-    res.on('end', () => {
-      if (typeof callback === 'function') {
-        callback(allData);
-      }
+    // Write data to request body
+    if (options.method === 'POST' || options.method === 'PUT') {
+      req.write(data);
+    }
 
-      LogUtil.winston.log('info', 'No more data in response.');
-    });
+    // On response error
+    req.on('error', e => reject(e));
+    req.end();
   });
 
-  // On response error
-  req.on('error', (e) => {
-    LogUtil.winston.log('error', `Problem with request: ${e.message}`);
-  });
-
-  // Write data to request body
-  if (options.method === 'POST' || options.method === 'PUT') {
-    req.write(data);
-  }
-
-  req.end();
+  return requestPromise;
 }
 
 module.exports = httpsRequest;

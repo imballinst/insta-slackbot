@@ -1,119 +1,212 @@
 const moment = require('moment');
 
+const destructureObj = require('./LodashUtil');
+
 // Set locale
 moment.locale('id');
 
-// Base getters
-function getMediasByTimerange(db, params, callback) {
-  const { startDate, endDate } = params;
-  const startDateMoment = moment(startDate, 'DD-MM-YYYY').utcOffset(420);
-  const endDateMoment = moment(endDate, 'DD-MM-YYYY').utcOffset(420);
+/**
+ * Generic CRUD Operations
+ * Create, Read, Update, Delete, all transformed to generic response
+ */
+function insertOne(db, collection, doc) {
+  return db
+    .collection(collection)
+    .insertOne(doc)
+    .then((queryResult) => {
+      const jsonResult = queryResult.toJSON();
+      const { ok, rest: restProps } = destructureObj(jsonResult, ['ok']);
 
-  db.collection('postedmedias')
-    .find({
-      created_time: {
-        $gte: new Date(startDateMoment),
-        $lte: new Date(endDateMoment),
-      },
-    })
-    .sort([['created_time', -1]])
-    .toArray((err, docs) => {
-      // Pass object { success, minID, count }
-      const dbResponse = { success: false, data: [] };
-
-      if (!err) {
-        dbResponse.success = true;
-
-        if (docs.length) {
-          dbResponse.data = {
-            minID: docs[docs.length - 1].id,
-            maxID: docs[0].id,
-            count: docs.length,
-          };
-        }
-      }
-
-      callback(dbResponse);
+      return { success: ok === 1, data: restProps };
     });
 }
 
-// function getFollowersCount(db, params, callback) {
-//   const { startDate, endDate } = params;
-//   const startDateMoment = moment(startDate, 'DD-MM-YYYY').utcOffset(420);
-//   const endDateMoment = moment(endDate, 'DD-MM-YYYY').utcOffset(420);
+function insertMany(db, collection, doc) {
+  return db
+    .collection(collection)
+    .insertMany(doc)
+    .then((queryResult) => {
+      const jsonResult = queryResult.result;
+      const { ok, rest: restProps } = destructureObj(jsonResult, ['ok']);
 
-//   db.collection('followers').find({
-//     time: {
-//       $gte: new Date(startDateMoment),
-//       $lte: new Date(endDateMoment),
-//     },
-//   }).toArray((err, docs) => {
-//     // Pass object { success, minID, count }
-//     const dbResponse = { success: false, data: [] };
+      return { success: ok === 1, data: restProps };
+    });
+}
 
-//     if (!err) {
-//       dbResponse.success = true;
-//       dbResponse.data = {
-//         count: docs.count,
-//       };
-//     }
+function find(db, collection, queryParams, sortParams) {
+  let docs = db.collection(collection);
 
-//     callback(dbResponse);
-//   });
-// }
+  if (queryParams) { docs = docs.find(queryParams); }
+  if (sortParams) { docs = docs.sort(sortParams); }
 
-function getAdmins(db, callback) {
-  db.collection('admins').find({
-    is_admin: '1',
-  }).toArray((err, docs) => {
-    // Pass object { success, docs }
-    const dbResponse = { success: false, data: [] };
+  return docs
+    .toArray()
+    .then(queryResult => ({ success: true, data: queryResult }));
+}
 
-    if (!err) {
-      dbResponse.success = true;
-      dbResponse.data = docs;
-    }
+function updateOne(db, collection, queryParams, update, options) {
+  return db.collection(collection).updateOne(
+    queryParams,
+    update,
+    options
+  ).then((queryResult) => {
+    const jsonResult = queryResult.toJSON();
+    const { ok, rest: restProps } = destructureObj(jsonResult, ['ok']);
 
-    callback(dbResponse);
+    return { success: ok === 1, data: restProps };
   });
 }
 
-function getAdminById(db, id, callback) {
-  db.collection('admins').find({
+function updateMany(db, collection, queryParams, update, options) {
+  return db.collection(collection).updateMany(
+    queryParams,
+    update,
+    options
+  ).then((queryResult) => {
+    const jsonResult = queryResult.toJSON();
+    const { ok, rest: restProps } = destructureObj(jsonResult, ['ok']);
+
+    return { success: ok === 1, data: restProps };
+  });
+}
+
+function deleteOne(db, collection, queryParams) {
+  return db.collection(collection).deleteOne(queryParams).then((queryResult) => {
+    const jsonResult = queryResult.toJSON();
+    const { ok, rest: restProps } = destructureObj(jsonResult, ['ok']);
+
+    return { success: ok === 1, data: restProps };
+  });
+}
+
+function deleteMany(db, collection, queryParams) {
+  return db.collection(collection).deleteMany(queryParams).then((queryResult) => {
+    const jsonResult = queryResult.toJSON();
+    const { ok, rest: restProps } = destructureObj(jsonResult, ['ok']);
+
+    return { success: ok === 1, data: restProps };
+  });
+}
+
+function findOneAndUpdate(db, collection, queryParams, update, options) {
+  return db.collection(collection).findOneAndUpdate(
+    queryParams,
+    update,
+    options
+  ).then((queryResult) => {
+    const { ok, rest: restProps } = destructureObj(queryResult, ['ok']);
+
+    return { success: ok === 1, data: restProps };
+  });
+}
+
+function findOneAndReplace(db, collection, queryParams, replacement, options) {
+  return db.collection(collection).findOneAndReplace(
+    queryParams,
+    replacement,
+    options
+  ).then((queryResult) => {
+    const { ok, rest: restProps } = destructureObj(queryResult, ['ok']);
+
+    return { success: ok === 1, data: restProps };
+  });
+}
+
+function findOneAndDelete(db, collection, queryParams, options) {
+  return db.collection(collection).findOneAndDelete(
+    queryParams,
+    options
+  ).then((queryResult) => {
+    const { ok, rest: restProps } = destructureObj(queryResult, ['ok']);
+
+    return { success: ok === 1, data: restProps };
+  });
+}
+
+/**
+ * Specific CRUD Operations
+ * Create, Read, Update, Delete, all using the generic operations above
+ */
+function getMediasByTimerange(db, params) {
+  const { startDate, endDate } = params;
+  // TODO: edit this
+  const offset = moment().utcOffset();
+  const startDateMoment = moment(startDate, 'DD-MM-YYYY').add(offset, 'm').toISOString();
+  const endDateMoment = moment(endDate, 'DD-MM-YYYY').add(offset, 'm').toISOString();
+
+  const collection = 'postedmedias';
+  const queryParams = {
+    created_time: {
+      $gte: new Date(startDateMoment),
+      $lte: new Date(endDateMoment),
+    },
+  };
+
+  const sortParams = [['created_time', -1]];
+
+  return find(db, collection, queryParams, sortParams)
+    .then((queryResult) => {
+      const { success, data } = queryResult;
+      // Pass object { success, minID, count }
+      const response = { success, data: {} };
+
+      if (data.length) {
+        response.data = {
+          minID: data[data.length - 1].id,
+          maxID: data[0].id,
+          count: data.length,
+        };
+      }
+
+      return response;
+    });
+}
+
+function getAdmins(db) {
+  const collection = 'admins';
+  const queryParams = {
+    is_admin: 1,
+  };
+
+  return find(db, collection, queryParams)
+    .then(queryResult => ({
+      success: queryResult.success,
+      data: queryResult.data,
+    }));
+}
+
+function getAdminById(db, id) {
+  const collection = 'admins';
+  const queryParams = {
+    is_admin: 1,
     user_id: id,
-    is_admin: '1',
-  }).toArray((err, docs) => {
-    // Pass object { success, docs }
-    const dbResponse = { success: false, data: [] };
+  };
 
-    if (!err) {
-      dbResponse.success = true;
-      dbResponse.data = docs;
-    }
-
-    callback(dbResponse);
-  });
+  return find(db, collection, queryParams)
+    .then(queryResult => ({
+      success: queryResult.success,
+      data: queryResult.data,
+    }));
 }
 
-function getChannels(db, callback) {
-  db.collection('channels').find({
-    is_broadcast: '1',
-  }).toArray((err, docs) => {
-    // Pass object { success, docs }
-    const dbResponse = { success: false, data: [] };
+function getChannels(db) {
+  const collection = 'channels';
+  const queryParams = {
+    is_broadcast: 1,
+  };
 
-    if (!err) {
-      dbResponse.success = true;
-      dbResponse.data = docs;
-    }
-
-    callback(dbResponse);
-  });
+  return find(db, collection, queryParams)
+    .then(queryResult => ({
+      success: queryResult.success,
+      data: queryResult.data,
+    }));
 }
 
 // Setters
-function setAdmin(db, userID, adminStatus, callback) {
-  db.collection('admins').updateOne(
+function setAdmin(db, userID, adminStatus) {
+  const collection = 'admins';
+
+  return db.collection(collection).updateOne(
     {
       user_id: userID,
     },
@@ -124,21 +217,14 @@ function setAdmin(db, userID, adminStatus, callback) {
     },
     {
       upsert: true,
-    },
-    (err) => {
-      const dbResponse = { success: false };
-
-      if (!err) {
-        dbResponse.success = true;
-      }
-
-      callback(dbResponse);
     }
-  );
+  ).then(queryResult => ({ success: JSON.parse(queryResult).ok === 1 }));
 }
 
-function setBroadcastChannel(db, channelID, channelStatus, callback) {
-  db.collection('channels').updateOne(
+function setBroadcastChannel(db, channelID, channelStatus) {
+  const collection = 'channels';
+
+  return db.collection(collection).updateOne(
     {
       channel_id: channelID,
     },
@@ -149,56 +235,25 @@ function setBroadcastChannel(db, channelID, channelStatus, callback) {
     },
     {
       upsert: true,
-    },
-    (err) => {
-      const dbResponse = { success: false };
-
-      if (!err) {
-        dbResponse.success = true;
-      }
-
-      callback(dbResponse);
     }
-  );
-}
-
-// Insert into Mongo
-function insertOneToDb(db, collection, doc, callback) {
-  db.collection(collection).insertOne(doc, (err, docs) => {
-    // Pass object { success, minID, count }
-    const dbResponse = { success: false, data: [] };
-
-    if (!err) {
-      dbResponse.success = true;
-      dbResponse.data = docs;
-    }
-
-    callback(dbResponse);
-  });
-}
-
-function insertManyToDb(db, collection, doc, callback) {
-  db.collection(collection).insertMany(doc, (err, docs) => {
-    // Pass object { success, minID, count }
-    const dbResponse = { success: false, data: [] };
-
-    if (!err) {
-      dbResponse.success = true;
-      dbResponse.data = docs;
-    }
-
-    callback(dbResponse);
-  });
+  ).then(queryResult => ({ success: JSON.parse(queryResult).ok === 1 }));
 }
 
 module.exports = {
+  insertOne,
+  insertMany,
+  find,
+  updateOne,
+  updateMany,
+  deleteOne,
+  deleteMany,
+  findOneAndUpdate,
+  findOneAndReplace,
+  findOneAndDelete,
   getMediasByTimerange,
-  // getFollowersCount,
   getAdmins,
   getAdminById,
   getChannels,
   setAdmin,
   setBroadcastChannel,
-  insertOneToDb,
-  insertManyToDb,
 };

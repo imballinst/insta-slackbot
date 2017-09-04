@@ -1,12 +1,20 @@
-// TODO: refactor this thing
-
 const moment = require('moment');
 
-const { getMedias, getMediaById } = require('./InstagramDriver');
+// Import variables
+const { specificHelpTexts } = require('./constants/HelpTexts');
+const validDateFormats = require('./constants/ValidVariables');
+const {
+  mediaCommandsList,
+  adminCommandsList,
+  commands,
+} = require('./constants/Commands');
+
+// Import functions
+const { getMedias } = require('./InstagramQueries');
 const {
   getListUsers,
   getListChannels,
-} = require('./SlackDriver');
+} = require('./SlackQueries');
 const {
   getMediasByTimerange,
   getAdmins,
@@ -16,151 +24,58 @@ const {
   setBroadcastChannel,
 } = require('./MongoQueries');
 
-// Media command help template because it's so common
-function helpTemplate(command, help, example) {
-  const header = `Panduan perintah *${command}*: \`!${command} [argumen]\`\n`;
-  const body = `Daftar argumen yang dapat digunakan:\n ${help}`;
-  const exampleText = example !== '' ? `Contoh penggunaan: ${example}\n` : '';
-
-  return header + body + exampleText;
-}
-
-// Specific command help
-const mediaArgs =
-  '\t• `--from`, `-f`: waktu awal dalam format *DD-MM-YYYY*. Contoh: `25-05-2015`. Default: awal minggu ini.\n' +
-  '\t• `--to`, `-t`: waktu akhir dalam format *DD-MM-YYYY*. Contoh: `25-05-2016`. Default: akhir minggu ini.\n';
-const sortParams = '\t• `--sort`, `-s`: urutan dalam format *field:order*. Contoh: `likes:asc`. Default: `time:asc`\n' +
-  '\t\t- *field*: atribut untuk diurutkan, diantaranya `likes`, `comments`, `time`, `tags`.\n' +
-  '\t\t- *order*: urutan hasil query, yaitu `asc` (kecil-besar) atau `desc` (besar-kecil).\n';
-
-const moteArgs = '\t• `--user`, `-u`: nama username. Contoh: `try.aji`\n';
-const setBroadcastArgs = '\t• `--channel`, `-c` (*wajib*): nama channel atau `~here`. Contoh: `general`. Default: `-`\n' +
-  '\t• `--broadcast`, `-b`: status broadcast untuk channel, `on` atau `off`. Contoh: `on`. Default: `on`\n';
-
-// Examples
-const cmdExamples = {
-  review: '`!review -f 25-05-2015 -t 25-05-2016 -s likes:asc` atau `!review --from 25-05-2015 --to 25-05-2016 --sort likes:asc`\n',
-  mostlikes: '`!mostlikes -f 25-05-2015 -t 25-05-2016` atau `!mostlikes --from 25-05-2015 --to 25-05-2016`\n',
-  countlikes: '`!countlikes -f 25-05-2015 -t 25-05-2016` atau `!countlikes --from 25-05-2015 --to 25-05-2016`\n',
-  help: '',
-  admins: '',
-  promote: '`!promote -u try.aji` atau `!promote --user try.aji`\n',
-  demote: '`!demote -u try.aji` atau `!demote --user try.aji`\n',
-  channels: '',
-  setbroadcast: '`!setbroadcast -c general -b on` atau `!setbroadcast --channel general --broadcast on`',
-};
-
-// Whole help command
-const commandHelps = {
-  review: helpTemplate('review', mediaArgs + sortParams, cmdExamples.review),
-  mostlikes: helpTemplate('mostlikes', mediaArgs, cmdExamples.mostlikes),
-  countlikes: helpTemplate('countlikes', mediaArgs, cmdExamples.countlikes),
-  help: 'Tidak diperlukan bantuan untuk perintah ini.\n',
-  admins: 'Tidak diperlukan bantuan untuk perintah ini.\n',
-  promote: helpTemplate('promote', moteArgs, cmdExamples.promote),
-  demote: helpTemplate('demote', moteArgs, cmdExamples.demote),
-  channels: 'Tidak diperlukan bantuan untuk perintah ini.\n',
-  setbroadcast: helpTemplate('setbroadcast', setBroadcastArgs, cmdExamples.setbroadcast),
-};
-
-// List of media commands
-const mediaCommands = [
-  'review', 'mostlikes', 'countlikes',
-];
-
-// List of administration commands
-const adminCommands = [
-  'admins', 'promote', 'demote', 'channels', 'setbroadcast',
-];
-
-// List of query parameters
-const queryParams = [
-  {
-    param: 'from',
-    prop: 'startDate',
-    shorthand: 'f',
-  },
-  {
-    param: 'to',
-    prop: 'endDate',
-    shorthand: 't',
-  },
-  {
-    param: 'sort',
-    prop: 'sort',
-    shorthand: 's',
-  },
-  {
-    param: 'user',
-    prop: 'user',
-    shorthand: 'u',
-  },
-  {
-    param: 'channel',
-    prop: 'channel',
-    shorthand: 'c',
-  },
-  {
-    param: 'broadcast',
-    prop: 'broadcast',
-    shorthand: 'b',
-  },
-];
-
 // Helper functions
-const isDateValid = string => moment(string, 'DD-MM-YYYY').isValid();
-const formatDatetime = momentObject => momentObject.format('dddd, Do MMMM YYYY');
+const isDateValid = string => moment(string, validDateFormats).isValid();
+const formatLongDate = string => moment(string, validDateFormats).format('dddd, Do MMMM YYYY');
+const formatShortDate = string => moment(string, validDateFormats).format('DD-MM-YYYY');
 
 const parseMessage = (message) => {
   // Variables
-  const [command, ...args] = message.text.split(' ');
-  const commandString = command.replace(/[!]+/g, '');
+  const matchingCommand = commands.find(command => command.regex.test(message.match));
+  const command = matchingCommand.key;
+  const queries = {};
+  let type;
 
-  const parsedObject = { command: commandString };
+  if (matchingCommand && !message.text.includes('bantuan')) {
+    // Delete command text
+    const deletedCommandText = new RegExp(`${message.match}(\\s)*`, 'gi');
+    const commandParams = matchingCommand.params;
+    let remainingMsgText = message.text.replace(deletedCommandText, '');
 
-  // Classify message based on its arguments
-  const argumentLength = args.length;
+    // Iterate parameters
+    Object.keys(commandParams).forEach((param) => {
+      if (remainingMsgText !== '') {
+        const regexMatch = commandParams[param][Symbol.match](remainingMsgText);
 
-  if (mediaCommands.includes(commandString) || adminCommands.includes(commandString)) {
-    if (args.includes('--help')) {
-      // Help message for a command
-      parsedObject.type = 'help';
-    } else if (argumentLength % 2 === 0) {
-      // Arguments are valid
-      parsedObject.type = 'query';
-      parsedObject.queries = {};
+        if (regexMatch) {
+          const matchingParam = regexMatch[0];
+          const deletedParams = new RegExp(`${matchingParam}(\\s)*`, 'gi');
 
-      const argsLength = args.length;
-      let valid = true;
-      let i = 0;
+          remainingMsgText = remainingMsgText.replace(deletedParams, '');
 
-      while (valid && i < argsLength) {
-        const key = args[i].replace(/[-]+/g, '');
-        const queryIndex = queryParams.findIndex(q => q.param === key || q.shorthand === key);
+          if (param === 'sort') {
+            const sortParams = matchingParam.split(' ', 3);
+            const sortField = sortParams[1];
+            const sortOrder = sortParams[2] === 'mengecil' ? 'desc' : 'asc';
 
-        if (queryIndex !== -1) {
-          // For immutability
-          parsedObject.queries[queryParams[queryIndex].prop] = args[i + 1];
+            queries[param] = `${sortField}:${sortOrder}`;
+          } else {
+            queries[param] = matchingParam.substr(matchingParam.indexOf(' ') + 1);
+          }
         } else {
-          // If there is undefined query, set valid to false and reset the array
-          valid = false;
-
-          parsedObject.type = 'invalid';
-          parsedObject.queries = {};
+          throw new Error('Parameter perintah kurang atau salah.');
         }
-
-        i += 2;
       }
-    } else {
-      // Invalid argument length
-      parsedObject.type = 'invalid';
-    }
+    });
+
+    type = 'query';
+  } else if (matchingCommand && message.text.includes('bantuan')) {
+    type = 'help';
   } else {
-    // Invalid command
-    parsedObject.type = 'invalid';
+    type = 'invalid';
   }
 
-  return parsedObject;
+  return { command, type, queries };
 };
 
 const getMediaQueryParams = (parsedObject) => {
@@ -178,309 +93,291 @@ const getMediaQueryParams = (parsedObject) => {
     .endOf('week')
     .format('DD-MM-YYYY');
 
-  const {
-    startDate = defaultStartDate,
-    endDate = defaultEndDate,
-    sort,
-  } = parsedObject;
+  const { startDate, endDate, sort } = parsedObject;
 
-  return { startDate, endDate, sort };
+  const newStartDate = isDateValid(startDate) ? formatShortDate(startDate) : defaultStartDate;
+  const newEndDate = isDateValid(endDate) ? formatShortDate(endDate) : defaultEndDate;
+
+  return { startDate: newStartDate, endDate: newEndDate, sort };
 };
 
-const processMessage = (bot, db, message, onSuccess) => {
-  const adminCheckCallback = (adminsResponse) => {
-    if (adminsResponse.data.length) {
+const runMediaCommand = (db, queries) => {
+  const params = getMediaQueryParams(queries);
+  const promise = new Promise((resolve, reject) => {
+    if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
+      const getMediaFromDb = getMediasByTimerange(db, params);
+
+      resolve(getMediaFromDb);
+    } else {
+      reject('Tanggal input tidak valid!');
+    }
+  });
+
+  return promise.then((dbResponse) => {
+    const { success, data } = dbResponse;
+    const {
+      minID = undefined,
+      maxID = undefined,
+      count = 0,
+    } = data;
+
+    const startDateFormat = formatLongDate(params.startDate);
+    const endDateFormat = formatLongDate(params.endDate);
+
+    if (success && count > 0) {
+      // Get all medias except maxID
+      return getMedias(minID, maxID, count).then(([promiseArray1, promiseArray2]) => {
+        const { data: posts1, meta: meta1 } = JSON.parse(promiseArray1);
+        const { data: posts2, meta: meta2 } = JSON.parse(promiseArray2);
+
+        if (meta1.code === 200 && meta2.code === 200) {
+          const posts1Array = Array.isArray(posts1) ? posts1 : [posts1];
+          const posts = posts2 ? posts1.concat(posts2) : posts1Array;
+
+          // Success fetching from API
+          return {
+            posts,
+            params: {
+              startDate: startDateFormat,
+              endDate: endDateFormat,
+              sort: params.sort,
+            },
+          };
+        } else if (meta1.code === 429 || meta2.code === 429) {
+          // Rate limit reached
+          throw new Error('Limit query tercapai. Silahkan tunggu beberapa saat lagi.');
+        } else {
+          throw new Error('Unexpected error.');
+        }
+      });
+    }
+
+    throw new Error(`Tidak ada post dari tanggal ${startDateFormat} hingga ${endDateFormat}.`);
+  });
+};
+
+const runAdministrationCommand = (db, command, message, queries) => {
+  let returnPromise;
+
+  switch (command) {
+    case 'admins': {
+      const usersPromise = new Promise((resolve, reject) => getListUsers().then((response) => {
+        const listUsersResponse = JSON.parse(response);
+
+        if (listUsersResponse.ok) {
+          const users = listUsersResponse.members;
+
+          getAdmins(db).then((dbResponse) => {
+            resolve({ dbResponse, users });
+          });
+        } else {
+          reject(response.error);
+        }
+      }));
+
+      returnPromise = usersPromise.then(({ dbResponse, users }) => {
+        // If successfully fetch from MongoDB
+        if (dbResponse.success) {
+          const data = dbResponse.data.map(admin => admin.user_id);
+          const filteredUsers = users
+            .filter(member => data.includes(member.id))
+            .map(member => member.name);
+
+          return { admins: filteredUsers };
+        }
+
+        throw new Error('Gagal fetch dari database. Silahkan coba lagi.');
+      });
+
+      break;
+    }
+    case 'promote':
+    case 'demote': {
+      const usersPromise = new Promise((resolve, reject) => {
+        const queryUsername = queries.user;
+        const adminStatus = command === 'promote' ? 1 : 0;
+
+        if (queryUsername) {
+          return getListUsers().then((response) => {
+            const listUsersResponse = JSON.parse(response);
+
+            if (listUsersResponse.ok) {
+              const users = listUsersResponse.members;
+              const userObject = users.find(user => queryUsername === user.name);
+
+              if (userObject) {
+                setAdmin(db, userObject.id, adminStatus).then((dbResponse) => {
+                  resolve({ dbResponse, queryUsername });
+                });
+              } else {
+                reject('Username tidak ditemukan. Silahkan coba lagi.');
+              }
+            } else {
+              reject(response.error);
+            }
+          });
+        }
+
+        throw new Error('Argumen tidak lengkap. Silahkan coba lagi.');
+      });
+
+      returnPromise = usersPromise.then(({ dbResponse, queryUsername }) => {
+        // If successfully set to MongoDB
+        const success = dbResponse.success;
+
+        if (success) {
+          return { username: queryUsername };
+        }
+
+        throw new Error('Gagal memasukkan ke database. Silahkan coba lagi.');
+      });
+
+      break;
+    }
+    case 'channels': {
+      const channelsPromise = new Promise((resolve, reject) => {
+        getListChannels().then((response) => {
+          // If successfully hit Slack API
+          const listChannelsResponse = JSON.parse(response);
+
+          if (listChannelsResponse.ok) {
+            const channels = listChannelsResponse.channels;
+
+            getChannels(db).then((dbResponse) => {
+              resolve({ dbResponse, channels });
+            });
+          } else {
+            reject(response.error);
+          }
+        });
+      });
+
+      returnPromise = channelsPromise.then(({ dbResponse, channels }) => {
+        const { success, data } = dbResponse;
+
+        // If successfully fetch from MongoDB
+        if (success) {
+          const mappedData = data.map(channel => channel.channel_id);
+          const filteredChannels = channels
+            .filter(channel => mappedData.includes(channel.id))
+            .map(channel => channel.name);
+
+          if (filteredChannels.length) {
+            return { channels: filteredChannels };
+          }
+          throw new Error('Tidak ada channel yang terdaftar sebagai channel broadcast.');
+        }
+
+        throw new Error('Gagal fetch dari database. Silahkan coba lagi.');
+      });
+
+      break;
+    }
+    case 'activate':
+    case 'deactivate': {
+      let channelName = queries.channel;
+
+      const channelsPromise = new Promise((resolve, reject) => {
+        if (channelName) {
+          const broadcastStatus = command === 'activate' ? 1 : 0;
+
+          getListChannels().then((apiResponse) => {
+            resolve({
+              apiResponse,
+              broadcastStatus,
+            });
+          });
+        } else {
+          reject('Argumen tidak lengkap. Silahkan coba lagi.');
+        }
+      });
+
+      returnPromise = channelsPromise.then(({ apiResponse, broadcastStatus }) => {
+        // If successfully hit Slack API
+        const listChannelsResponse = JSON.parse(apiResponse);
+
+        if (listChannelsResponse.ok) {
+          // If API doesn't return error
+          let channelID;
+
+          if (channelName === '~here') {
+            channelID = message.channel;
+            channelName = '[ini]';
+          } else {
+            const channels = listChannelsResponse.channels;
+            const channelObj = channels.find(channel => channelName === channel.name);
+
+            if (channelObj) {
+              channelID = channelObj.id;
+            }
+          }
+
+          if (channelID) {
+            return setBroadcastChannel(db, channelID, broadcastStatus).then((dbResponse) => {
+              // If successfully set to MongoDB
+              const success = dbResponse.success;
+
+              if (success) {
+                return { channelName };
+              }
+
+              throw new Error('Gagal memasukkan ke database. Silahkan coba lagi.');
+            });
+          }
+
+          throw new Error('Channel tidak ditemukan. Pastikan channel tersebut public/ada.');
+        } else {
+          throw new Error(listChannelsResponse.error);
+        }
+      });
+
+      break;
+    }
+    default: break;
+  }
+
+  return returnPromise;
+};
+
+const processMessage = (db, message) => getAdminById(db, message.user)
+  .then((response) => {
+    if (response.data.length) {
+      let returnedObject;
+
       const { command, type, queries } = parseMessage(message);
 
       switch (type) {
         case 'invalid': {
-          bot.reply(message, 'Perintah tidak valid. Cek kembali masukan perintah Anda!');
-
-          break;
+          throw new Error('Perintah tidak valid. Cek kembali masukan perintah Anda!');
         }
         case 'help': {
-          bot.reply(message, commandHelps[command]);
+          if (specificHelpTexts[command] !== '') {
+            returnedObject = { helpText: specificHelpTexts[command] };
+          } else {
+            throw new Error(`Perintah ${message.match} tidak memerlukan bantuan!'`);
+          }
 
           break;
         }
         case 'query': {
-          if (mediaCommands.includes(command)) {
-            // If it is a media command
-            const params = getMediaQueryParams(queries);
-
-            if (isDateValid(params.startDate) && isDateValid(params.endDate)) {
-              // db callback
-              const dbCallback = (dbResponse) => {
-                const { success, data } = dbResponse;
-                const {
-                  minID = undefined,
-                  maxID = undefined,
-                  count = 0,
-                } = data;
-
-                if (success && count > 0) {
-                  // Get all medias except maxID
-                  const httpCallback = (responseString) => {
-                    const { data: posts, meta } = JSON.parse(responseString);
-
-                    // Get media with maxID
-                    const httpCallback2 = (responseString2) => {
-                      const { data: maxIDPost, meta: meta2 } = JSON.parse(responseString2);
-                      const mappedPosts = posts.map((post) => {
-                        const {
-                          link,
-                          created_time: createdAt,
-                          likes,
-                          caption,
-                          comments,
-                          tags,
-                        } = post;
-
-                        return {
-                          link,
-                          created_time: createdAt,
-                          likes: likes.count,
-                          caption: caption ? caption.text : '',
-                          comments: comments.count,
-                          tags,
-                        };
-                      });
-
-                      // Concat all, ones w/o maxID and maxID
-                      const wholePosts = [
-                        {
-                          link: maxIDPost.link,
-                          created_time: maxIDPost.created_time,
-                          likes: maxIDPost.likes.count,
-                          caption: maxIDPost.caption ? maxIDPost.caption.text : '',
-                          comments: maxIDPost.comments ? maxIDPost.comments.count : 0,
-                          tags: maxIDPost.tags,
-                        },
-                      ].concat(mappedPosts);
-
-                      if (meta2.code === 200) {
-                        // Success fetching from API
-                        onSuccess(wholePosts, params);
-                      } else if (meta2.code === 429) {
-                        // Rate limit reached
-                        bot.reply(
-                          message,
-                          'Limit query tercapai. Silahkan tunggu beberapa saat lagi.'
-                        );
-                      }
-                    };
-
-                    if (meta.code === 200) {
-                      // Success fetching from API
-                      getMediaById(maxID, httpCallback2);
-                    } else if (meta.code === 429) {
-                      // Rate limit reached
-                      bot.reply(
-                        message,
-                        'Limit query tercapai. Silahkan tunggu beberapa saat lagi.'
-                      );
-                    }
-                  };
-
-                  getMedias(minID, maxID, count, httpCallback);
-                } else {
-                  onSuccess([], params);
-                }
-              };
-
-              getMediasByTimerange(db, params, dbCallback);
-            } else {
-              bot.reply(message, 'Tanggal input tidak valid!');
-            }
-          } else if (adminCommands.includes(command)) {
-            // If it is an administration command
-            // 'admins', 'promote', 'demote', 'channels', 'setbroadcast',
-            switch (command) {
-              case 'admins': {
-                const httpCallback = (response) => {
-                  // If successfully hit Slack API
-                  const listUsersResponse = JSON.parse(response);
-
-                  if (listUsersResponse.ok) {
-                    const users = listUsersResponse.members;
-                    const dbCallback = (dbResponse) => {
-                      // If successfully fetch from MongoDB
-                      if (dbResponse.success) {
-                        const data = dbResponse.data.map(admin => admin.user_id);
-                        const filteredUsers = users
-                          .filter(member => data.includes(member.id))
-                          .map(member => member.name);
-
-                        onSuccess(filteredUsers);
-                      } else {
-                        bot.reply(
-                          message,
-                          'Gagal fetch dari database. Silahkan coba lagi.'
-                        );
-                      }
-                    };
-
-                    getAdmins(db, dbCallback);
-                  } else {
-                    bot.reply(message, response.error);
-                  }
-                };
-
-                getListUsers(httpCallback);
-
-                break;
-              }
-              case 'promote':
-              case 'demote': {
-                const queryUsername = queries.user;
-                const adminStatus = command === 'promote' ? '1' : '0';
-
-                if (queryUsername) {
-                  const httpCallback = (response) => {
-                    // If successfully hit Slack API
-                    const listUsersResponse = JSON.parse(response);
-
-                    if (listUsersResponse.ok) {
-                      const users = listUsersResponse.members;
-                      const userObject = users.find(user => queryUsername === user.name);
-
-                      if (userObject) {
-                        const dbCallback = (dbResponse) => {
-                          // If successfully set to MongoDB
-                          const success = dbResponse.success;
-
-                          if (success) {
-                            onSuccess(success, queryUsername);
-                          } else {
-                            bot.reply(
-                              message,
-                              'Gagal memasukkan ke database. Silahkan coba lagi.'
-                            );
-                          }
-                        };
-
-                        setAdmin(db, userObject.id, adminStatus, dbCallback);
-                      } else {
-                        bot.reply(message, 'Username tidak ditemukan. Silahkan coba lagi.');
-                      }
-                    } else {
-                      bot.reply(message, response.error);
-                    }
-                  };
-
-                  getListUsers(httpCallback);
-                } else {
-                  bot.reply(message, 'Argumen tidak lengkap. Silahkan coba lagi.');
-                }
-
-                break;
-              }
-              case 'channels': {
-                const httpCallback = (response) => {
-                  // If successfully hit Slack API
-                  const listChannelsResponse = JSON.parse(response);
-
-                  if (listChannelsResponse.ok) {
-                    const channels = listChannelsResponse.channels;
-                    const dbCallback = (dbResponse) => {
-                      // If successfully fetch from MongoDB
-                      if (dbResponse.success) {
-                        const data = dbResponse.data.map(channel => channel.channel_id);
-                        const filteredChannels = channels
-                          .filter(channel => data.includes(channel.id))
-                          .map(channel => channel.name);
-
-                        onSuccess(filteredChannels);
-                      } else {
-                        bot.reply(
-                          message,
-                          'Gagal fetch dari database. Silahkan coba lagi.'
-                        );
-                      }
-                    };
-
-                    getChannels(db, dbCallback);
-                  } else {
-                    bot.reply(message, response.error);
-                  }
-                };
-
-                getListChannels(httpCallback);
-
-                break;
-              }
-              case 'setbroadcast': {
-                const broadcast = queries.broadcast;
-                let channelName = queries.channel;
-
-                if (channelName) {
-                  const broadcastStatus = broadcast === 'off' ? '0' : '1';
-                  const httpCallback = (response) => {
-                    // If successfully hit Slack API
-                    const listChannelsResponse = JSON.parse(response);
-
-                    if (listChannelsResponse.ok) {
-                      // If API doesn't return error
-                      let channelID;
-
-                      if (channelName === '~here') {
-                        channelID = message.channel;
-                        channelName = 'ini';
-                      } else {
-                        const channels = listChannelsResponse.channels;
-                        channelID = channels.find(channel => channelName === channel.name).id;
-                      }
-
-                      if (channelID) {
-                        const dbCallback = (dbResponse) => {
-                          // If successfully set to MongoDB
-                          const success = dbResponse.success;
-
-                          if (success) {
-                            onSuccess(success, channelName, broadcastStatus);
-                          } else {
-                            bot.reply(
-                              message,
-                              'Gagal memasukkan ke database. Silahkan coba lagi.'
-                            );
-                          }
-                        };
-
-                        setBroadcastChannel(db, channelID, broadcastStatus, dbCallback);
-                      } else {
-                        bot.reply(
-                          message,
-                          'Channel tidak ditemukan. Pastikan channel tersebut public.'
-                        );
-                      }
-                    } else {
-                      // If API returns an error
-                      bot.reply(message, response.error);
-                    }
-                  };
-
-                  getListChannels(httpCallback);
-                } else {
-                  bot.reply(message, 'Argumen tidak lengkap. Silahkan coba lagi.');
-                }
-
-                break;
-              }
-              default: break;
-            }
+          if (mediaCommandsList.includes(command)) {
+            returnedObject = runMediaCommand(db, queries);
+          } else if (adminCommandsList.includes(command)) {
+            returnedObject = runAdministrationCommand(db, command, message, queries);
+          } else {
+            throw new Error('Perintah tidak teridentifikasi.');
           }
 
           break;
         }
         default: break;
       }
-    } else {
-      bot.reply(message, 'Perintah hanya dapat diberikan oleh admin-admin.');
-    }
-  };
 
-  getAdminById(db, message.user, adminCheckCallback);
-};
+      return returnedObject;
+    }
+
+    throw new Error('Anda bukan admin!');
+  });
 
 function batchReply(bot, messageObj, posts, currentIndex) {
   setTimeout(() => {
@@ -494,15 +391,15 @@ function batchReply(bot, messageObj, posts, currentIndex) {
       tags,
     } = posts[currentIndex];
 
-    const createdAt = `*${formatDatetime(moment.unix(date))}*`;
+    const createdAt = `*${moment.unix(date).format('dddd, Do MMMM YYYY')}*`;
     const tagsText = tags.length > 0 ? `*Tags*: _${tags.join(',')}_.\n` : '';
-    const captionText = caption !== '' ? `${caption}\n\n` : '';
+    const captionText = caption !== '' ? `${caption.text}\n\n` : '';
     const nextIndex = currentIndex + 1;
     let botMsg = '';
 
     // Manually concat for each post
-    botMsg += `${currentIndex + 1}. ${link} (${createdAt}) - *${likes}* likes\n\n`;
-    botMsg += `${captionText} ${tagsText} *Comments count*: ${comments}.`;
+    botMsg += `${currentIndex + 1}. ${link} (${createdAt}) - *${likes.count}* likes\n\n`;
+    botMsg += `${captionText} ${tagsText} *Comments count*: ${comments.count}.`;
 
     bot.reply(messageObj, botMsg, (err) => {
       if (!err) {
@@ -518,8 +415,8 @@ function batchReply(bot, messageObj, posts, currentIndex) {
 
 module.exports = {
   batchReply,
-  commandHelps,
-  formatDatetime,
+  formatShortDate,
+  formatLongDate,
   getMediaQueryParams,
   isDateValid,
   parseMessage,

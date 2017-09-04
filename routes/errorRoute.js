@@ -1,7 +1,7 @@
 // Import modules
 const app = require('../app');
 
-const LogUtil = require('../libs/LogUtil');
+const winstonError = require('../libs/LogUtil').winstonError;
 
 // 404 Resource Not Found
 app.get('*', (req, res) => {
@@ -10,7 +10,7 @@ app.get('*', (req, res) => {
 
 // 500 Internal Server Error
 app.use((err, req, res, next) => {
-  LogUtil.winston.log('error', err.stack);
+  winstonError(err.stack);
 
   res.status(500).send('Something broke!');
   next();

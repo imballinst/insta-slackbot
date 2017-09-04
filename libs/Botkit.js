@@ -1,7 +1,7 @@
 // Import modules
 const botkit = require('botkit');
 
-const LogUtil = require('./LogUtil');
+const winstonError = require('./LogUtil').winstonError;
 
 // Contain the bot instance and controller to be exported to the routes
 const botContainer = {
@@ -11,7 +11,7 @@ const botContainer = {
     const token = process.env.SLACK_BOT_TOKEN;
 
     if (!token) {
-      LogUtil.winston.log('error', 'Please specify bot token!');
+      winstonError('Please specify bot token!');
       process.exit(1);
     }
 

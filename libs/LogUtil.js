@@ -23,8 +23,11 @@ const logger = new (winston.Logger)({
   ],
 });
 
-const LogUtil = {};
-LogUtil.winston = logger;
+const LogUtil = {
+  winstonLog: logger.log,
+  winstonInfo: logger.info,
+  winstonError: logger.error,
+};
 
 // Export app
 module.exports = LogUtil;

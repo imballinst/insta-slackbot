@@ -2,9 +2,11 @@
 const moment = require('moment');
 
 const BotLibs = require('../libs/Botkit');
-const { commandRegexes } = require('../libs/constants/Commands');
 
+const { commandRegexes } = require('../libs/constants/Commands');
 const { generalHelpText } = require('../libs/constants/HelpTexts');
+const { broadcastMessages } = require('../libs/constants/CommonVariables');
+
 const { winstonInfo, winstonError } = require('../libs/LogUtil');
 const { getMediaById } = require('../libs/InstagramQueries');
 const { getChannels } = require('../libs/MongoQueries');
@@ -47,6 +49,7 @@ if (isProd) {
 
     // JSON Object of POST data
     const mediaID = req.body['0'].data.media_id;
+    const messageIndex = Math.floor(Math.random() * 6);
 
     getMediaById(mediaID).then((response) => {
       const jsonObject = JSON.parse(response);
@@ -69,7 +72,7 @@ if (isProd) {
           .then((dbResponse) => {
             dbResponse.data.forEach((channel) => {
               botInstance.say({
-                text: `Ada post baru nih di Instagram! ${link} ${text}`,
+                text: `${broadcastMessages[messageIndex]} ${link} ${text}`,
                 channel: channel.channel_id,
               });
             });

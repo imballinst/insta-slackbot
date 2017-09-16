@@ -2,9 +2,11 @@
 const moment = require('moment');
 
 const BotLibs = require('../libs/Botkit');
-const { commandRegexes } = require('../libs/constants/Commands');
 
+const { commandRegexes } = require('../libs/constants/Commands');
 const { generalHelpText } = require('../libs/constants/HelpTexts');
+const { broadcastMessages } = require('../libs/constants/CommonVariables');
+
 const { winstonInfo, winstonError } = require('../libs/LogUtil');
 const { getMediaById } = require('../libs/InstagramQueries');
 const { getChannels } = require('../libs/MongoQueries');
@@ -389,6 +391,12 @@ if (isProd) {
 
       bot.reply(message, err.message);
     });
+  });
+
+  botController.hears('#testmsgbroadcast', events, (bot, message) => {
+    const num = Math.floor(Math.random() * 6);
+
+    bot.reply(message, broadcastMessages[num]);
   });
 } else {
   // Local/development mode

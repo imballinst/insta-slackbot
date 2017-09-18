@@ -2,7 +2,7 @@ const moment = require('moment');
 
 // Import variables
 const { specificHelpTexts } = require('./constants/HelpTexts');
-const validDateFormats = require('./constants/ValidVariables');
+const { validDateFormats } = require('./constants/CommonVariables');
 const {
   mediaCommandsList,
   adminCommandsList,

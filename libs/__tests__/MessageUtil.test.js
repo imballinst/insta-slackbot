@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-import validDateFormats from '../constants/ValidVariables';
+import { validDateFormats } from '../constants/CommonVariables';
 import {
   formatShortDate,
   formatLongDate,

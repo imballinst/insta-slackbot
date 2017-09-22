@@ -33,13 +33,12 @@ function insertMany(db, collection, doc) {
     });
 }
 
-function find(db, collection, queryParams, sortParams) {
-  let docs = db.collection(collection);
+function find(db, collection, queryParams, sortParams, limitParams) {
+  const queryObject = queryParams || {};
+  const sortObject = sortParams || {};
+  const limit = limitParams || 0;
 
-  if (queryParams) { docs = docs.find(queryParams); }
-  if (sortParams) { docs = docs.sort(sortParams); }
-
-  return docs
+  return db.collection(collection).find(queryObject).sort(sortObject).limit(limit)
     .toArray()
     .then(queryResult => ({ success: true, data: queryResult }));
 }

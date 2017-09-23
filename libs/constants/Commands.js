@@ -1,3 +1,5 @@
+const events = ['direct_message'];
+
 /**
  * Base regexes
  */
@@ -6,13 +8,18 @@ const commandRegexes = {
   review: /\b(review|rekap)/gi,
   mostlikes: /\b((jumlah )*likes terbanyak)/gi,
   countlikes: /\b((hitung )?jumlah (post )?likes)/gi,
-  admins: /\b((daftar|list){1} (admin|admins){1})/gi,
-  channels: /\b(daftar (channel|channels){1}|list (channel|channels){1})/gi,
+  admins: /\b((daftar|list){1} (admin(s)?){1})/gi,
+  channels: /\b(daftar (channel(s)?){1}|list (channel(s)?){1})/gi,
   promote: /\b(promosi(kan)?){1}/gi,
   demote: /\b(demosi(kan)?){1}/gi,
   activate: /\b(aktif(kan)?){1}/gi,
   deactivate: /\b(nonaktif(kan)?){1}/gi,
   help: /^(help|(daftar perintah)|bantuan){1}$/gi,
+  addkeywords: /\b(tambah(kan)?){1}/gi,
+  removekeywords: /\b(hapus){1}/gi,
+  listkeywords: /\b((daftar|list){1} (keyword(s)?)){1}/gi,
+  notify: /\b(notifikasi(kan)?){1}/gi,
+  denotify: /\b(denotifikasi(kan)?){1}/gi,
 };
 
 /**
@@ -24,13 +31,16 @@ const mediaParams = {
 };
 const userParams = { user: /(user|pengguna){1} .+/gi };
 const channelParams = { channel: /(channel|kanal){1} .+/gi };
+const keywordsParams = { keywords:  /(keyword(s)?){1} .+/gi }
 
 /**
  * Base commands list
  */
 const mediaCommandsList = ['review', 'mostlikes', 'countlikes'];
 const adminCommandsList =
-  ['help', 'admins', 'channels', 'promote', 'demote', 'activate', 'deactivate'];
+  ['help', 'admins', 'channels', 'promote', 'demote', 'activate', 'deactivate',
+   'notify', 'denotify'];
+const twitterCommandsList = ['addkeywords', 'removekeywords', 'listkeywords'];
 
 /**
  * Complete commands list with regex and params
@@ -90,11 +100,38 @@ const commands = [
     regex: commandRegexes.deactivate,
     params: channelParams,
   },
+  {
+    key: 'addkeywords',
+    regex: commandRegexes.addkeywords,
+    params: keywordsParams,
+  },
+  {
+    key: 'removekeywords',
+    regex: commandRegexes.removekeywords,
+    params: keywordsParams,
+  },
+  {
+    key: 'listkeywords',
+    regex: commandRegexes.listkeywords,
+    params: {}
+  },
+  {
+    key: 'notify',
+    regex: commandRegexes.notify,
+    params: userParams
+  },
+  {
+    key: 'denotify',
+    regex: commandRegexes.denotify,
+    params: userParams
+  },
 ];
 
 module.exports = {
   mediaCommandsList,
   adminCommandsList,
+  twitterCommandsList,
+  events,
   commands,
   commandRegexes,
 };

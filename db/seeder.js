@@ -1,7 +1,6 @@
 require('dotenv').config();
 
 const moment = require('moment');
-const lodashFilter = require('lodash/filter');
 
 const MongoDriver = require('../libs/MongoDriver');
 const { winstonInfo, winstonError } = require('../libs/LogUtil');
@@ -39,7 +38,7 @@ function insertMockData(db) {
           const maxIDMedia = !Array.isArray(maxIdRes.data) ? getRequiredFields(maxIdRes.data) : [];
 
           allMedias = mediaExcludeMaxId.concat(maxIDMedia);
-          allMedias = lodashFilter(allMedias, media => !last20Data.includes(media.id));
+          allMedias = allMedias.filter(media => !last20Data.includes(media.id));
         } else {
           throw new Error(maxIdRes.meta.error_message);
         }
@@ -71,10 +70,7 @@ function insertMockData(db) {
         {
           $set: {
             is_admin: 1,
-          },
-          $setOnInsert: {
-            user_id: slackAdminId,
-            is_admin: 1,
+            twitter_notify_enabled: 0,
           },
         },
         { upsert: true }

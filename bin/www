@@ -6,25 +6,28 @@ const http = require('http');
 
 const app = require('../app');
 const MongoDriver = require('../libs/MongoDriver');
-const winstonInfo = require('../libs/LogUtil').winstonInfo;
+const { winstonError, winstonInfo } = require('../libs/LogUtil');
+const { getKeywords } = require('../libs/MongoQueries');
 
 // Routes
-require('../routes/indexRoute');
-require('../routes/subscribeRoute');
-require('../routes/accessTokenRoute');
-require('../routes/instaApiRoute');
-require('../routes/slackApiRoute');
-require('../routes/botRoute');
-require('../routes/errorRoute');
+const initRoutes = require('../routes/indexRoute');
 
 // Set MongoDriver as locals in app
 app.locals.mongoDriver = MongoDriver;
-app.locals.mongoDriver.openDBConnection().then(() => {
-  // Server and Port
-  const server = new http.Server(app);
-  const portApp = (process.env.PORT) || 3001;
+app.locals.keywords = [];
+app.locals.mongoDriver.openDBConnection().then(db =>
+  // Initiate app.locals.keywords
+  getKeywords(db)).then((dbResponse) => {
+    app.locals.keywords = dbResponse.data.map(keywordObj => keywordObj.keyword);
+    winstonInfo(`Initial state of keywords: ${app.locals.keywords.join(', ')}`);
 
-  server.listen(portApp, () => {
-    winstonInfo(`Listening on port ${portApp}!`);
-  });
-});
+    // Server and Port
+    const server = new http.Server(app);
+    const portApp = (process.env.PORT) || 3001;
+
+    initRoutes(app);
+
+    server.listen(portApp, () => {
+      winstonInfo(`Listening on port ${portApp}!`);
+    });
+  }).catch(err => winstonError(`Error during initialization: ${err}`));

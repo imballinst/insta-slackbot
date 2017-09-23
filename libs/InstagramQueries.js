@@ -45,7 +45,7 @@ function getMedias(minID, maxID, count) {
   const medias = count > 1 || !count ?
     httpsRequest(options, undefined) : getMediaById(maxID);
   const mediaMaxID = maxID && count > 1 ?
-    getMediaById(maxID) : '{ "data": [], "meta": { "code": 200 }}';
+    getMediaById(maxID) : '{ "meta": { "code": 200 }, "data": [] }';
 
   // Send request
   return Promise.all([

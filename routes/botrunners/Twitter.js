@@ -22,6 +22,10 @@ const slackAdminId = process.env.SLACK_ADMIN_ID;
 function addTweetEvent(app, streamObj, botInstance, twitterController) {
   const trackedWords = app.locals.keywords;
 
+  if (typeof streamObj.wordStream !== 'undefined') {
+    streamObj.wordStream.stop();
+  }
+
   streamObj.wordStream = twitterController.stream('statuses/filter', { track: trackedWords });
   streamObj.wordStream.on('tweet', (tweet) => {
     const {

@@ -211,7 +211,6 @@ function setAdmin(db, userID, adminStatus) {
         is_admin: adminStatus,
       },
       $setOnInsert: {
-        is_admin: adminStatus,
         twitter_notify_enabled: 0,
       },
     },
@@ -236,7 +235,6 @@ function setAdminNotify(db, userID, notifyStatus) {
       },
       $setOnInsert: {
         is_admin: 0,
-        twitter_notify_enabled: notifyStatus,
       },
     },
     {

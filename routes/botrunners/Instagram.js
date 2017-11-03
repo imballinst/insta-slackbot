@@ -1,5 +1,6 @@
+const moment = require('moment');
+
 const { events, commandRegexes } = require('../../libs/constants/Commands');
-const { generalHelpText } = require('../../libs/constants/HelpTexts');
 const { broadcastMessages } = require('../../libs/constants/CommonVariables');
 
 const { winstonInfo, winstonError } = require('../../libs/LogUtil');
@@ -41,7 +42,7 @@ function initInstagramFeatures(app, botInstance, botController) {
                 channel: channel.channel_id,
               });
             });
-          }).catch((err) => winstonError(err));
+          }).catch(err => winstonError(err));
       }
         // If media doesn't exist
       throw new Error('Media not found!');

@@ -2,22 +2,15 @@ const Twit = require('twit');
 const moment = require('moment');
 
 const { events, commandRegexes } = require('../../libs/constants/Commands');
-const { broadcastMessages } = require('../../libs/constants/CommonVariables');
 
 const { winstonInfo, winstonError } = require('../../libs/LogUtil');
-const {
-  addKeywords,
-  removeKeywords,
-  getKeywords,
-  getAdmins,
-} = require('../../libs/MongoQueries');
+const { getAdmins } = require('../../libs/MongoQueries');
 const { processMessage } = require('../../libs/MessageUtil');
 
 const consumerKey = process.env.TWITTER_CONSUMER_KEY;
 const consumerSecret = process.env.TWITTER_CONSUMER_SECRET;
 const accessToken = process.env.TWITTER_ACCESS_TOKEN;
 const accessTokenSecret = process.env.TWITTER_ACCESS_TOKEN_SECRET;
-const slackAdminId = process.env.SLACK_ADMIN_ID;
 
 function addTweetEvent(app, streamObj, botInstance, twitterController) {
   const trackedWords = app.locals.keywords;
@@ -51,7 +44,7 @@ function addTweetEvent(app, streamObj, botInstance, twitterController) {
       .then((dbResponse) => {
         const admins = dbResponse.data.filter(admin => admin.twitter_notify_enabled === 1);
 
-        admins.forEach(admin => {
+        admins.forEach((admin) => {
           botInstance.api.im.open({
             user: admin.user_id,
           }, (err, res) => {
@@ -66,7 +59,7 @@ function addTweetEvent(app, streamObj, botInstance, twitterController) {
             });
           });
         });
-      }).catch((err) => winstonError(err));
+      }).catch(err => winstonError(err));
   });
 }
 
@@ -78,8 +71,6 @@ function initTwitterFeatures(app, botInstance, botController) {
     access_token_secret: accessTokenSecret,
   });
 
-  // const trackedWords = app.locals.keywords.join(',');
-  const trackedWords = app.locals.keywords.join(',');
   const streamObj = {
     wordStream: undefined,
   };
@@ -156,7 +147,7 @@ function initTwitterFeatures(app, botInstance, botController) {
 
       // If help text is not defined
       if (!helpText) {
-        botMsg = `Daftar keyword-keyword yang ditrack saat ini:\n`;
+        botMsg = 'Daftar keyword-keyword yang ditrack saat ini:\n';
 
         keywords.forEach((keyword, i) => {
           botMsg += `\t${i + 1}. ${keyword}\n`;

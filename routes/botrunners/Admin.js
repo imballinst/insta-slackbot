@@ -1,11 +1,8 @@
 const { events, commandRegexes } = require('../../libs/constants/Commands');
 const { generalHelpText } = require('../../libs/constants/HelpTexts');
-const { broadcastMessages } = require('../../libs/constants/CommonVariables');
 
 const { winstonInfo, winstonError } = require('../../libs/LogUtil');
-const { getMediaById } = require('../../libs/InstagramQueries');
-const { getChannels } = require('../../libs/MongoQueries');
-const { processMessage, batchReply } = require('../../libs/MessageUtil');
+const { processMessage } = require('../../libs/MessageUtil');
 
 function initAdminFeatures(app, botController) {
   // List command regexes
@@ -58,7 +55,7 @@ function initAdminFeatures(app, botController) {
         });
 
         botMsg += '*Keterangan*: admin yang dicetak tebal adalah yang dinotifikasi apabila ' +
-          '_keyword_ yang telah ditentukan muncul dari tweet seseorang di Twitter.'
+          '_keyword_ yang telah ditentukan muncul dari tweet seseorang di Twitter.';
       } else {
         botMsg = helpText;
       }

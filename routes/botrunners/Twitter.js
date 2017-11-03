@@ -12,6 +12,8 @@ const consumerSecret = process.env.TWITTER_CONSUMER_SECRET;
 const accessToken = process.env.TWITTER_ACCESS_TOKEN;
 const accessTokenSecret = process.env.TWITTER_ACCESS_TOKEN_SECRET;
 
+const timezoneOffset = parseInt(process.env.TIMEZONE_OFFSET, 10);
+
 function addTweetEvent(app, streamObj, botInstance, twitterController) {
   const trackedWords = app.locals.keywords;
 
@@ -35,7 +37,8 @@ function addTweetEvent(app, streamObj, botInstance, twitterController) {
     const tsMillisecond = timestampMs.substr(0, timestampMs.length - 3);
     const displayFormat = 'dddd, MMMM Do YYYY, HH:mm:ss';
 
-    const tweetTime = moment.unix(tsMillisecond).format(displayFormat);
+    const momentObj = moment.unix(tsMillisecond);
+    const tweetTime = momentObj.utcOffset(timezoneOffset).format(displayFormat);
     const tweetLink = `https://twitter.com/${accountName}/status/${tweetId}`;
 
     const slackMsg = `[${tweetTime}] ${realName} ngetweet dengan keywordmu, nih: ${tweetLink}`;

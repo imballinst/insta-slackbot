@@ -6,6 +6,7 @@ const { validDateFormats } = require('./constants/CommonVariables');
 const {
   mediaCommandsList,
   adminCommandsList,
+  twitterCommandsList,
   commands,
 } = require('./constants/Commands');
 
@@ -20,8 +21,12 @@ const {
   getAdmins,
   getAdminById,
   getChannels,
+  getKeywords,
   setAdmin,
+  setAdminNotify,
   setBroadcastChannel,
+  addKeywords,
+  removeKeywords,
 } = require('./MongoQueries');
 
 // Helper functions
@@ -171,17 +176,24 @@ const runAdministrationCommand = (db, command, message, queries) => {
             resolve({ dbResponse, users });
           });
         } else {
-          reject(response.error);
+          reject(listUsersResponse.error);
         }
       }));
 
       returnPromise = usersPromise.then(({ dbResponse, users }) => {
         // If successfully fetch from MongoDB
         if (dbResponse.success) {
-          const data = dbResponse.data.map(admin => admin.user_id);
+          const memberIdsArray = dbResponse.data.map(admin => admin.user_id);
           const filteredUsers = users
-            .filter(member => data.includes(member.id))
-            .map(member => member.name);
+            .filter(member => memberIdsArray.includes(member.id))
+            .map((member) => {
+              const matchingUser = dbResponse.data.find((admin => admin.user_id === member.id));
+
+              return {
+                name: member.name,
+                isNotifyEnabled: matchingUser.twitter_notify_enabled,
+              };
+            });
 
           return { admins: filteredUsers };
         }
@@ -333,6 +345,107 @@ const runAdministrationCommand = (db, command, message, queries) => {
 
       break;
     }
+    case 'notify':
+    case 'denotify': {
+      const usersPromise = new Promise((resolve, reject) => {
+        const queryUsername = queries.user;
+        const notifyStatus = command === 'notify' ? 1 : 0;
+
+        if (queryUsername) {
+          return getListUsers().then((response) => {
+            const listUsersResponse = JSON.parse(response);
+
+            if (listUsersResponse.ok) {
+              const users = listUsersResponse.members;
+              const userObject = users.find(user => queryUsername === user.name);
+
+              if (userObject) {
+                setAdminNotify(db, userObject.id, notifyStatus).then((dbResponse) => {
+                  resolve({ dbResponse, queryUsername });
+                });
+              } else {
+                reject('Username tidak ditemukan. Silahkan coba lagi.');
+              }
+            } else {
+              reject(response.error);
+            }
+          });
+        }
+
+        throw new Error('Argumen tidak lengkap. Silahkan coba lagi.');
+      });
+
+      returnPromise = usersPromise.then(({ dbResponse, queryUsername }) => {
+        // If successfully set to MongoDB
+        const success = dbResponse.success;
+
+        if (success) {
+          return { username: queryUsername };
+        }
+
+        throw new Error('Gagal memasukkan ke database. Silahkan coba lagi.');
+      });
+
+      break;
+    }
+
+    default: break;
+  }
+
+  return returnPromise;
+};
+
+const runTwitterCommand = (db, command, queries) => {
+  let returnPromise;
+
+  switch (command) {
+    case 'addkeywords':
+    case 'removekeywords': {
+      const keywords = queries.keywords.replace(/,\s+/g, ',');
+      let promiseFunction;
+      let errorAction;
+
+      if (command === 'addkeywords') {
+        promiseFunction = addKeywords;
+        errorAction = 'menambahkan ke';
+      } else {
+        promiseFunction = removeKeywords;
+        errorAction = 'menghapus dari';
+      }
+
+      if (keywords) {
+        returnPromise = promiseFunction(db, keywords).then((dbResponse) => {
+          // If successfully set to MongoDB
+          if (dbResponse.success) {
+            return { keywords };
+          }
+
+          throw new Error(`Gagal ${errorAction} database. Silahkan coba lagi.`);
+        });
+      } else {
+        throw new Error('Argumen tidak lengkap. Silahkan coba lagi.');
+      }
+
+      break;
+    }
+    case 'listkeywords': {
+      returnPromise = getKeywords(db).then((dbResponse) => {
+        // If successfully set to MongoDB
+        const { success, data } = dbResponse;
+
+        if (success) {
+          if (data.length) {
+            return { keywords: data.map(keywordObj => keywordObj.keyword) };
+          }
+
+          throw new Error('Belum ada daftar keyword yang tersimpan.');
+        }
+
+        throw new Error('Gagal membaca dari database. Silahkan coba lagi.');
+      });
+
+      break;
+    }
     default: break;
   }
 
@@ -364,6 +477,8 @@ const processMessage = (db, message) => getAdminById(db, message.user)
             returnedObject = runMediaCommand(db, queries);
           } else if (adminCommandsList.includes(command)) {
             returnedObject = runAdministrationCommand(db, command, message, queries);
+          } else if (twitterCommandsList.includes(command)) {
+            returnedObject = runTwitterCommand(db, command, queries);
           } else {
             throw new Error('Perintah tidak teridentifikasi.');
           }

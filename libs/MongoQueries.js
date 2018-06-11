@@ -33,13 +33,12 @@ function insertMany(db, collection, doc) {
     });
 }
 
-function find(db, collection, queryParams, sortParams) {
-  let docs = db.collection(collection);
+function find(db, collection, queryParams, sortParams, limitParams) {
+  const queryObject = queryParams || {};
+  const sortObject = sortParams || {};
+  const limit = limitParams || 0;
 
-  if (queryParams) { docs = docs.find(queryParams); }
-  if (sortParams) { docs = docs.sort(sortParams); }
-
-  return docs
+  return db.collection(collection).find(queryObject).sort(sortObject).limit(limit)
     .toArray()
     .then(queryResult => ({ success: true, data: queryResult }));
 }
@@ -168,11 +167,7 @@ function getAdmins(db) {
     is_admin: 1,
   };
 
-  return find(db, collection, queryParams)
-    .then(queryResult => ({
-      success: queryResult.success,
-      data: queryResult.data,
-    }));
+  return find(db, collection, queryParams);
 }
 
 function getAdminById(db, id) {
@@ -182,11 +177,7 @@ function getAdminById(db, id) {
     user_id: id,
   };
 
-  return find(db, collection, queryParams)
-    .then(queryResult => ({
-      success: queryResult.success,
-      data: queryResult.data,
-    }));
+  return find(db, collection, queryParams);
 }
 
 function getChannels(db) {
@@ -195,18 +186,23 @@ function getChannels(db) {
     is_broadcast: 1,
   };
 
-  return find(db, collection, queryParams)
-    .then(queryResult => ({
-      success: queryResult.success,
-      data: queryResult.data,
-    }));
+  return find(db, collection, queryParams);
+}
+
+function getKeywords(db) {
+  const collection = 'keywords';
+  const queryParams = {};
+
+  return find(db, collection, queryParams);
 }
 
 // Setters
 function setAdmin(db, userID, adminStatus) {
   const collection = 'admins';
 
-  return db.collection(collection).updateOne(
+  return updateOne(
+    db,
+    collection,
     {
       user_id: userID,
     },
@@ -214,17 +210,45 @@ function setAdmin(db, userID, adminStatus) {
       $set: {
         is_admin: adminStatus,
       },
+      $setOnInsert: {
+        twitter_notify_enabled: 0,
+      },
     },
     {
       upsert: true,
     }
-  ).then(queryResult => ({ success: JSON.parse(queryResult).ok === 1 }));
+  );
+}
+
+function setAdminNotify(db, userID, notifyStatus) {
+  const collection = 'admins';
+
+  return updateOne(
+    db,
+    collection,
+    {
+      user_id: userID,
+    },
+    {
+      $set: {
+        twitter_notify_enabled: notifyStatus,
+      },
+      $setOnInsert: {
+        is_admin: 0,
+      },
+    },
+    {
+      upsert: true,
+    }
+  );
 }
 
 function setBroadcastChannel(db, channelID, channelStatus) {
   const collection = 'channels';
 
-  return db.collection(collection).updateOne(
+  return updateOne(
+    db,
+    collection,
     {
       channel_id: channelID,
     },
@@ -236,7 +260,23 @@ function setBroadcastChannel(db, channelID, channelStatus) {
     {
       upsert: true,
     }
-  ).then(queryResult => ({ success: JSON.parse(queryResult).ok === 1 }));
+  );
+}
+
+// Add/remove operations
+function addKeywords(db, keywords) {
+  const collection = 'keywords';
+  const keywordsArray = keywords.replace(/,(\s)+/gi, ',').split(',');
+  const keywordDocuments = keywordsArray.map(keyword => ({ keyword }));
+
+  return insertMany(db, collection, keywordDocuments);
+}
+
+function removeKeywords(db, keywords) {
+  const collection = 'keywords';
+  const keywordsArray = keywords.replace(/,(\s)+/gi, ',').split(',');
+
+  return deleteMany(db, collection, { keyword: { $in: keywordsArray } });
 }
 
 module.exports = {
@@ -254,6 +294,10 @@ module.exports = {
   getAdmins,
   getAdminById,
   getChannels,
+  getKeywords,
   setAdmin,
+  setAdminNotify,
   setBroadcastChannel,
+  addKeywords,
+  removeKeywords,
 };
